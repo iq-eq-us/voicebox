@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import CyranoTextArea from "./components/CyranoTextArea";
+import CyranoMain from "./components/CyranoMain";
 
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
       </header>
 	  <body className="App-body">
         {/*Main input field (CyranoTextField)*/}
-	    <CyranoTextArea />
+	    <CyranoMain />
       </body>
     </div>
   );
