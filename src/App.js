@@ -13,7 +13,7 @@ function App() {
       </header>
 	  <body className="App-body">
         {/*Main input field (CyranoTextField)*/}
-	    <CyranoMain />
+	    <CyranoMain id={"Cyrano-main"}/>
       </body>
     </div>
   );
