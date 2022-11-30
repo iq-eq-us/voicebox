@@ -66,40 +66,43 @@ export default function CyranoMain() {
 	}
 
 	return (
-		<form>
-			<RadioGroup row aria-label="readOn" name="readOn" defaultValue="comma">
+		<div>
+			<form>
+				<RadioGroup row aria-label="readOn" name="readOn" defaultValue="comma">
+					<label>
+						Read on: &nbsp;
+						<FormControlLabel value="sentence" control={<Radio/>} label="sentence" onChange={() => {
+							setReadOnComma(false);
+							setReadOnSpace(false);
+						}}/>
+						<FormControlLabel value="comma" control={<Radio/>} label="comma" onChange={() => {
+							setReadOnComma(true);
+							setReadOnSpace(false);
+						}}/>
+						<FormControlLabel value="space" control={<Radio/>} label="space" onChange={() => {
+							setReadOnComma(true);
+							setReadOnSpace(true);
+						}}/>
+					</label>
+				</RadioGroup>
 				<label>
-					Read on: &nbsp;
-					<FormControlLabel value="sentence" control={<Radio/>} label="sentence" onChange={() => {
-						setReadOnComma(false);
-						setReadOnSpace(false);
-					}}/>
-					<FormControlLabel value="comma" control={<Radio/>} label="comma" onChange={() => {
-						setReadOnComma(true);
-						setReadOnSpace(false);
-					}}/>
-					<FormControlLabel value="space" control={<Radio/>} label="space" onChange={() => {
-						setReadOnComma(true);
-						setReadOnSpace(true);
-					}}/>
+					API Key: &nbsp;
+					<input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)}/>
 				</label>
-			</RadioGroup>
-			<label>
-				API Key: &nbsp;
-				<input type="password" value={apiKey} onChange={(event) => setApiKey(event.target.value)}/>
-			</label>
-			<TextareaAutosize
-				minRows={15}
-				style={{width: 500, display: "flex", flexDirection: "column"}}
-				value={readText}
-			/>
-			<TextareaAutosize
-				minRows={15}
-				style={{width: 500, display: "flex", flexDirection: "column"}}
-				placeholder="Start typing here..."
-				value={inputText}
-				onChange={onChange}
-			/>
-		</form>
+				<TextareaAutosize
+					minRows={15}
+					style={{width: 500, display: "flex", flexDirection: "column"}}
+					value={readText}
+				/>
+				<TextareaAutosize
+					minRows={15}
+					style={{width: 500, display: "flex", flexDirection: "column"}}
+					placeholder="Start typing here..."
+					value={inputText}
+					onChange={onChange}
+				/>
+			</form>
+			<p>Copyright 2022 <a href={"https://raymond.li"}>Raymond Li</a>. Made with ❤️ on <a href={"https://github.com/Raymo111/cyrano"}>GitHub</a></p>
+		</div>
 	);
 }

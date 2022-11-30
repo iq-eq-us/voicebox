@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import CyranoMain from "./components/CyranoMain";
 
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
+test('renders Cyrano main component', () => {
+  render(<CyranoMain />);
+  const linkElement = screen.getByText(/Raymond Li/i);
   expect(linkElement).toBeInTheDocument();
 });
