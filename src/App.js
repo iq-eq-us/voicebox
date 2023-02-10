@@ -1,19 +1,20 @@
-import logo from './logo.svg';
+import logo from './CharaChorder_logo_dark_black.webp';
 import './App.css';
-import CyranoMain from "./components/CyranoMain";
+import VoiceBoxMain from "./components/VoiceBoxMain";
 
 function App() {
   return (
     <div className="App">
       <header className="App-header">
+          <br/>
         <img src={logo} className="App-logo" alt="logo" />
         <h1>
-          Cyrano
+          CharaChorder VoiceBox
         </h1>
       </header>
 	  <body className="App-body">
-        {/*Main input field (CyranoTextField)*/}
-	    <CyranoMain id={"Cyrano-main"}/>
+        {/*Main input field (VoiceBoxTextField)*/}
+	    <VoiceBoxMain id={"VoiceBox-main"}/>
       </body>
     </div>
   );

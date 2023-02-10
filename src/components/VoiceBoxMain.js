@@ -12,9 +12,11 @@ TODO
 - Support multiple languages
 - Support multiple voices
 - Support read speed
+- Rate limiting
+- Google form popup
  */
 
-export default function CyranoMain() {
+export default function VoiceBoxMain() {
 	const [apiKey, setApiKey] = useState("");
 	const [inputText, setInputText] = useState("");
 	const [readText, setReadText] = useState("");
@@ -152,6 +154,6 @@ export default function CyranoMain() {
 				       }}/>
 			</label>
 		</form>
-		<p>Copyright 2023 <a href={"https://raymond.li"}>Raymond Li</a>. Made with ❤️ on <a href={"https://github.com/Raymo111/cyrano"}>GitHub</a></p>
+		<p>&#169; 2023 <a href={"https://charachorder.com"}>CharaChorder Inc.</a></p>
 	</div>);
 }

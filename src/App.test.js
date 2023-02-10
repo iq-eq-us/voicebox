@@ -1,9 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
-import CyranoMain from "./components/CyranoMain";
+import VoiceBoxMain from "./components/VoiceBoxMain";
 
-test('renders Cyrano main component', () => {
-  render(<CyranoMain />);
-  const linkElement = screen.getByText(/Raymond Li/i);
+test('renders VoiceBox main component', () => {
+  render(<VoiceBoxMain />);
+  const linkElement = screen.getByText(/CharaChorder/i);
   expect(linkElement).toBeInTheDocument();
 });
