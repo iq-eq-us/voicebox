@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {TextareaAutosize, RadioGroup, Radio, FormControlLabel} from "@mui/material";
+import './VoiceBoxMain.css';
 import queue from "queue";
 
 const stopChars = [".", "!", "?", ";", ":", "\n"];
@@ -97,31 +98,17 @@ export default function VoiceBoxMain() {
 	return (<div>
 		<form>
 			<TextareaAutosize
-				class="notaninput"
+				className="notaninput"
 				minRows={15}
 				style={{
-					width: 500,
-					height: 200,
-					display: "flex",
-					flexDirection: "column",
-					overflowY: "scroll",
-					caretColor: "transparent",
-					backgroundColor: "black",
-					color: "white"
+					caretColor: "transparent", height: 200
 				}}
 				value={readText}
-				caretColor={"transparent"}
 			/>
 			<TextareaAutosize
 				minRows={15}
 				style={{
-					width: 500,
-					height: 100,
-					display: "flex",
-					flexDirection: "column",
-					overflowY: "scroll",
-					backgroundColor: "black",
-					color: "white"
+					height: 100
 				}}
 				placeholder="Start typing here..."
 				value={inputText}

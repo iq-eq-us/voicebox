@@ -6,16 +6,16 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-          <br/>
+      <br/>
         <img src={logo} className="App-logo" alt="logo" />
         <h1>
           CharaChorder VoiceBox
         </h1>
       </header>
-	  <body className="App-body">
+	  <div className="App-body">
         {/*Main input field (VoiceBoxTextField)*/}
 	    <VoiceBoxMain id={"VoiceBox-main"}/>
-      </body>
+      </div>
     </div>
   );
 }
