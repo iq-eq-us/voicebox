@@ -17,6 +17,7 @@ import queue from "queue";
 const stopChars = [".", "!", "?", ";", ":", "\n"];
 const defaultLanguage = "en-US";
 const defaultGender = "FEMALE";
+const ENV_API_KEY = process.env.VOICEBOX_API_KEY || "";
 
 /*
 TODO
@@ -37,7 +38,7 @@ function vbLog(message) {
 }
 
 export default function VoiceBoxMain() {
-	const [apiKey, setApiKey] = useState("");
+	const [apiKey, setApiKey] = useState(ENV_API_KEY);
 	const [language, setLanguage] = useState(defaultLanguage);
 	const [availableLanguages, setAvailableLanguages] = useState([]);
 	const [gender, setGender] = useState(defaultGender);
@@ -270,10 +271,10 @@ export default function VoiceBoxMain() {
 					              localStorage.setItem("voice", v || '');
 				              }} value={voice} defaultValue={availableVoices[0]}/>
 			</div>
-			<label>
+			{!ENV_API_KEY && <label>
 				API Key: &nbsp;
 				<input type="password" value={apiKey} onChange={onApiKeyChange}/>
-			</label>
+			</label>}
 		</form>
 		<p>&#169; 2023 <a href={"https://charachorder.com"}>CharaChorder Inc.</a></p>
 	</div>);
