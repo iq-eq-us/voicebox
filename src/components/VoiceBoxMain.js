@@ -32,6 +32,10 @@ TODO
 - Support read speed
  */
 
+function vbLog(message) {
+	if ("production" !== process.env.NODE_ENV) console.log("VoiceBox: " + message);
+}
+
 export default function VoiceBoxMain() {
 	const [apiKey, setApiKey] = useState("");
 	const [language, setLanguage] = useState(defaultLanguage);
@@ -58,9 +62,9 @@ export default function VoiceBoxMain() {
 
 			// Remove duplicates and sort
 			langs = [...new Set(langs)].sort();
-			console.log("Available languages: " + langs);
+			vbLog("Available languages: " + langs);
 		}).catch(error => {
-			console.log("Error getting available languages: " + error);
+			vbLog("Error getting available languages: " + error);
 		}).finally(() => {
 			setAvailableLanguages(langs);
 		});
@@ -78,9 +82,9 @@ export default function VoiceBoxMain() {
 
 			// Sort
 			voices.sort();
-			console.log("Available voices: " + voices);
+			vbLog("Available voices: " + voices);
 		}).catch(error => {
-			console.log("Error getting available voices: " + error);
+			vbLog("Error getting available voices: " + error);
 		}).finally(() => {
 			setAvailableVoices(voices);
 		});
@@ -88,7 +92,7 @@ export default function VoiceBoxMain() {
 
 	// Get settings from local storage
 	useEffect(() => {
-		console.log("VoiceBoxMain useEffect called");
+		vbLog("VoiceBoxMain useEffect called");
 		// Get API key from local storage
 		const key = localStorage.getItem("apiKey");
 		if (key) {
@@ -152,7 +156,7 @@ export default function VoiceBoxMain() {
 
 		// If last character is newline or period, call API on last input
 		if (stopChars.includes(event.target.value.slice(-1)) || (readOnComma && event.target.value.slice(-1) === ",") || (readOnSpace && event.target.value.slice(-1) === " ")) {
-			console.log(`API call on: ${event.target.value} with API key: ${apiKey} and language: ${language}`);
+			vbLog(`API call on: ${event.target.value} with API key: ${apiKey} and language: ${language}`);
 
 			// Move input text to read text
 			if (readText === "") {
@@ -196,7 +200,7 @@ export default function VoiceBoxMain() {
 	function onApiKeyChange(event) {
 		setApiKey(event.target.value);
 		localStorage.setItem("apiKey", event.target.value);
-		console.log("API key set to: " + event.target.value);
+		vbLog("API key set to: " + event.target.value);
 	}
 
 	return (<div>
