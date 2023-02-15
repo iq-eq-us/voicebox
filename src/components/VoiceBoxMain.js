@@ -249,6 +249,10 @@ export default function VoiceBoxMain() {
 				              onChange={(e, v) => {
 					              setLanguage(v);
 					              localStorage.setItem("language", v || '');
+
+					              // Clear voice
+					              setVoice('');
+					              localStorage.setItem("voice", '');
 				              }} value={language} defaultValue={defaultLanguage}/>
 				<FormControl>
 					<InputLabel id="genderSelectLabel">Gender</InputLabel>
@@ -264,7 +268,7 @@ export default function VoiceBoxMain() {
 						<MenuItem value={"MALE"}>Male</MenuItem>
 					</Select>
 				</FormControl>
-				<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 150}}
+				<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
 				              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
 				              onChange={(e, v) => {
 					              setVoice(v);
