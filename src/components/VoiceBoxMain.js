@@ -10,7 +10,9 @@ import {
 	InputLabel,
 	MenuItem,
 	Select,
-	FormControl
+	FormControl,
+	FormLabel,
+	Box
 } from "@mui/material";
 import queue from "queue";
 
@@ -46,8 +48,7 @@ export default function VoiceBoxMain() {
 	const [voice, setVoice] = useState("");
 	const [inputText, setInputText] = useState("");
 	const [readText, setReadText] = useState("");
-	const [readOnComma, setReadOnComma] = useState(true);
-	const [readOnSpace, setReadOnSpace] = useState(false);
+	const [readOn, setReadOn] = useState("comma");
 	const audioQueue = queue({autostart: false, concurrency: 1});
 	const inputArea = document.getElementById("inputArea");
 
@@ -80,8 +81,6 @@ export default function VoiceBoxMain() {
 		const url = "https://texttospeech.googleapis.com/v1/voices?languageCode=" + language + "&key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
 			voices = data.voices.filter(voice => voice.ssmlGender === gender && !voice.name.includes("Studio")).map(voice => voice.name);
-
-			// Sort
 			voices.sort();
 			vbLog("Available voices: " + voices);
 		}).catch(error => {
@@ -112,26 +111,11 @@ export default function VoiceBoxMain() {
 			setVoice(voice);
 		}
 
-		// TODO: Get readOn settings from local storage
-		// const readOnSetting = localStorage.getItem("readOn");
-		// setReadOnComma(true);
-		// setReadOnSpace(false);
-		// if (readOnSetting === "sentence") {
-		// 	setReadOnComma(true);
-		// } else if (readOnSetting === "space") {
-		// 	setReadOnSpace(true);
-		// }
-
-		// Set right radio button
-		// if (readOnSetting === "sentence") {
-		// 	document.getElementById("readOnSentence").checked = true;
-		// }
-		// if (readOnSetting === "comma") {
-		// 	document.getElementById("readOnComma").checked = true;
-		// }
-		// if (readOnSetting === "space") {
-		// 	document.getElementById("readOnSpace").checked = true;
-		// }
+		// Get readOn setting from local storage
+		const readOnSetting = localStorage.getItem("readOn");
+		if (readOnSetting) {
+			setReadOn(readOnSetting);
+		}
 	}, []);
 
 	// Focus on inputArea if any input key is pressed
@@ -156,7 +140,7 @@ export default function VoiceBoxMain() {
 		setInputText(event.target.value);
 
 		// If last character is newline or period, call API on last input
-		if (stopChars.includes(event.target.value.slice(-1)) || (readOnComma && event.target.value.slice(-1) === ",") || (readOnSpace && event.target.value.slice(-1) === " ")) {
+		if (stopChars.includes(event.target.value.slice(-1)) || (readOn === "comma" && event.target.value.slice(-1) === ",") || (readOn === "space" && event.target.value.slice(-1) === " ")) {
 			vbLog(`API call on: ${event.target.value} with API key: ${apiKey} and language: ${language}`);
 
 			// Move input text to read text
@@ -221,65 +205,56 @@ export default function VoiceBoxMain() {
 				id={"inputArea"}
 				autoFocus
 			/>
-			<RadioGroup row style={{display: "flex", flexDirection: "row", justifyContent: "center"}}
-			            aria-label="readOn" name="readOn" defaultValue="comma">
-				<label>
-					Read on: &nbsp;
-					<FormControlLabel id="readOnSentence" value="sentence" control={<Radio/>} label="sentence"
-					                  onChange={() => {
-						                  setReadOnComma(false);
-						                  setReadOnSpace(false);
-						                  localStorage.setItem("readOn", "sentence");
-					                  }}/>
-					<FormControlLabel id="readOnComma" value="comma" control={<Radio/>} label="comma" onChange={() => {
-						setReadOnComma(true);
-						setReadOnSpace(false);
-						localStorage.setItem("readOn", "comma");
-					}}/>
-					<FormControlLabel id="readOnSpace" value="space" control={<Radio/>} label="space" onChange={() => {
-						setReadOnComma(false);
-						setReadOnSpace(true);
-						localStorage.setItem("readOn", "space");
-					}}/>
-				</label>
-			</RadioGroup>
-			<div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
-				<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
-				              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
-				              onChange={(e, v) => {
-					              setLanguage(v);
-					              localStorage.setItem("language", v || '');
-
-					              // Clear voice
-					              setVoice('');
-					              localStorage.setItem("voice", '');
-				              }} value={language} defaultValue={defaultLanguage}/>
-				<FormControl>
-					<InputLabel id="genderSelectLabel">Gender</InputLabel>
-					<Select id="genderSelect" labelId={"genderSelectLabel"} label="Gender" onChange={(e) => {
-						setGender(e.target.value);
-						localStorage.setItem("gender", e.target.value || '');
-
-						// Clear voice
-						setVoice('');
-						localStorage.setItem("voice", '');
-					}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}}>
-						<MenuItem value={"FEMALE"}>Female</MenuItem>
-						<MenuItem value={"MALE"}>Male</MenuItem>
-					</Select>
+			<Box sx={{border: 1, borderColor: "white", borderRadius: 1}}>
+				<FormControl
+					style={{display: "flex", flexDirection: "row", justifyContent: "center", margin: "0.5em 0"}}>
+					<FormLabel id="readOnLabel" sx={{fontSize: ""}}>Read on: &nbsp;</FormLabel>
+					<RadioGroup row name="readOn"
+					            aria-labelledby="readOnLabel" defaultValue="comma" value={readOn} onChange={(e) => {
+						setReadOn(e.target.value);
+						localStorage.setItem("readOn", e.target.value);
+					}}>
+						<FormControlLabel value="sentence" control={<Radio/>} label="sentence"/>
+						<FormControlLabel value="comma" control={<Radio/>} label="comma"/>
+						<FormControlLabel value="space" control={<Radio/>} label="space"/>
+					</RadioGroup>
 				</FormControl>
-				<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
-				              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
-				              onChange={(e, v) => {
-					              setVoice(v);
-					              localStorage.setItem("voice", v || '');
-				              }} value={voice} defaultValue={availableVoices[0]}/>
-			</div>
-			{!ENV_API_KEY && <label>
-				API Key: &nbsp;
-				<input type="password" value={apiKey} onChange={onApiKeyChange}/>
-			</label>}
+				<div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
+					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
+					              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
+					              onChange={(e, v) => {
+						              setLanguage(v);
+						              localStorage.setItem("language", v || '');
+
+						              // Clear voice
+						              setVoice('');
+						              localStorage.setItem("voice", '');
+					              }} value={language} defaultValue={defaultLanguage}/>
+					<FormControl>
+						<InputLabel id="genderSelectLabel">Gender</InputLabel>
+						<Select id="genderSelect" labelId={"genderSelectLabel"} label="Gender" onChange={(e) => {
+							setGender(e.target.value);
+							localStorage.setItem("gender", e.target.value || '');
+
+							// Clear voice
+							setVoice('');
+							localStorage.setItem("voice", '');
+						}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}}>
+							<MenuItem value={"FEMALE"}>Female</MenuItem>
+							<MenuItem value={"MALE"}>Male</MenuItem>
+						</Select>
+					</FormControl>
+					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
+					              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
+					              onChange={(e, v) => {
+						              setVoice(v);
+						              localStorage.setItem("voice", v || '');
+					              }} value={voice} defaultValue={availableVoices[0]}/>
+				</div>
+				{!ENV_API_KEY && <TextField id="readOnLabel" type="password" label="API Key" variant="outlined"
+				                            onChange={onApiKeyChange}/>}
+			</Box>
 		</form>
-		<p>&#169; 2023 <a href={"https://charachorder.com"}>CharaChorder Inc.</a></p>
+		<p>&copy; 2023 <a href={"https://charachorder.com"}>CharaChorder Inc.</a></p>
 	</div>);
 }
