@@ -205,7 +205,7 @@ export default function VoiceBoxMain() {
 				id={"inputArea"}
 				autoFocus
 			/>
-			<Box sx={{border: 1, borderColor: "white", borderRadius: 1}}>
+			<Box sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
 				<FormControl
 					style={{display: "flex", flexDirection: "row", justifyContent: "center", margin: "0.5em 0"}}>
 					<FormLabel id="readOnLabel" sx={{fontSize: ""}}>Read on: &nbsp;</FormLabel>
@@ -219,7 +219,7 @@ export default function VoiceBoxMain() {
 						<FormControlLabel value="space" control={<Radio/>} label="space"/>
 					</RadioGroup>
 				</FormControl>
-				<div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
+				<div style={{display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
 					              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
 					              onChange={(e, v) => {
@@ -252,7 +252,8 @@ export default function VoiceBoxMain() {
 					              }} value={voice} defaultValue={availableVoices[0]}/>
 				</div>
 				{!ENV_API_KEY && <TextField id="readOnLabel" type="password" label="API Key" variant="outlined"
-				                            onChange={onApiKeyChange} value={apiKey}/>}
+				                            onChange={onApiKeyChange} value={apiKey}
+				                            style={{marginBottom: "0.5em"}}/>}
 			</Box>
 		</form>
 	</div>);
