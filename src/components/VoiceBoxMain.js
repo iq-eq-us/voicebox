@@ -252,9 +252,8 @@ export default function VoiceBoxMain() {
 					              }} value={voice} defaultValue={availableVoices[0]}/>
 				</div>
 				{!ENV_API_KEY && <TextField id="readOnLabel" type="password" label="API Key" variant="outlined"
-				                            onChange={onApiKeyChange}/>}
+				                            onChange={onApiKeyChange} value={apiKey}/>}
 			</Box>
 		</form>
-		<p>&copy; 2023 <a href={"https://charachorder.com"}>CharaChorder Inc.</a></p>
 	</div>);
 }

@@ -3,6 +3,7 @@ import CssBaseline from '@mui/material/CssBaseline';
 import logo from './CharaChorder_logo_dark_black.webp';
 import './App.css';
 import VoiceBoxMain from "./components/VoiceBoxMain";
+import React from "react";
 
 const darkTheme = createTheme({
 	palette: {
@@ -15,10 +16,9 @@ function App() {
 		<CssBaseline/>
 		<div className="App">
 			<header className="App-header">
-				<br/>
 				<img src={logo} className="App-logo" alt="logo"/>
 				<h1>
-					CharaChorder VoiceBox
+					VoiceBox
 				</h1>
 			</header>
 			<div className="App-body">
@@ -26,6 +26,9 @@ function App() {
 				<VoiceBoxMain id={"VoiceBox-main"}/>
 			</div>
 		</div>
+		<footer className="App-footer">
+			<small>&copy; 2023 <a href={"https://charachorder.com"}>CharaChorder LLC</a></small>
+		</footer>
 	</ThemeProvider>);
 }
 

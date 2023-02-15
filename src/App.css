@@ -3,16 +3,16 @@
 }
 
 .App-logo {
-  height: 10vh;
-  pointer-events: none;
+  height: 7vh;
+  margin-right: 1rem;
 }
 
 .App-header {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
+  font-size: calc(10px + 1vmin);
   color: white;
 }
 
@@ -27,4 +27,12 @@
 
 .App-link {
   color: #61dafb;
+}
+
+.App-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 1vmin);
+  color: white;
 }
