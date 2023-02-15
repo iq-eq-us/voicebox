@@ -1,12 +1,22 @@
 import React, {useEffect, useState} from "react";
 import './VoiceBoxMain.css';
 import {
-	TextareaAutosize, RadioGroup, Radio, FormControlLabel, Autocomplete, TextField
+	TextareaAutosize,
+	RadioGroup,
+	Radio,
+	FormControlLabel,
+	Autocomplete,
+	TextField,
+	InputLabel,
+	MenuItem,
+	Select,
+	FormControl
 } from "@mui/material";
 import queue from "queue";
 
 const stopChars = [".", "!", "?", ";", ":", "\n"];
 const defaultLanguage = "en-US";
+const defaultGender = "FEMALE";
 
 /*
 TODO
@@ -14,17 +24,21 @@ TODO
 ✓ Start focus on input box and make next tab index toggling read type
 ✓ Typing anywhere should focus on input box
 ✓ Support multiple languages
-- Support multiple voices
-- Support read speed
+✓ Support multiple voices
 - Rate limiting
 - Google form popup
 - Save readOn setting to local storage
+- Use MUI for all input fields
+- Support read speed
  */
 
-export default function VoiceBoxMain(callback, deps) {
+export default function VoiceBoxMain() {
 	const [apiKey, setApiKey] = useState("");
 	const [language, setLanguage] = useState(defaultLanguage);
 	const [availableLanguages, setAvailableLanguages] = useState([]);
+	const [gender, setGender] = useState(defaultGender);
+	const [availableVoices, setAvailableVoices] = useState([]);
+	const [voice, setVoice] = useState("");
 	const [inputText, setInputText] = useState("");
 	const [readText, setReadText] = useState("");
 	const [readOnComma, setReadOnComma] = useState(true);
@@ -32,12 +46,11 @@ export default function VoiceBoxMain(callback, deps) {
 	const audioQueue = queue({autostart: false, concurrency: 1});
 	const inputArea = document.getElementById("inputArea");
 
+	// Get available languages from voices:list endpoint
 	useEffect(() => {
 		if (!apiKey) {
 			return;
 		}
-
-		// Get available languages from voices:list endpoint
 		let langs = [];
 		const url = "https://texttospeech.googleapis.com/v1/voices?key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
@@ -53,6 +66,26 @@ export default function VoiceBoxMain(callback, deps) {
 		});
 	}, [apiKey]);
 
+	// Get available voices from voices:list endpoint
+	useEffect(() => {
+		if (!apiKey || !language) {
+			return;
+		}
+		let voices = [];
+		const url = "https://texttospeech.googleapis.com/v1/voices?languageCode=" + language + "&key=" + apiKey;
+		fetch(url).then(response => response.json()).then(data => {
+			voices = data.voices.filter(voice => voice.ssmlGender === gender && !voice.name.includes("Studio")).map(voice => voice.name);
+
+			// Sort
+			voices.sort();
+			console.log("Available voices: " + voices);
+		}).catch(error => {
+			console.log("Error getting available voices: " + error);
+		}).finally(() => {
+			setAvailableVoices(voices);
+		});
+	}, [apiKey, language, gender]);
+
 	// Get settings from local storage
 	useEffect(() => {
 		console.log("VoiceBoxMain useEffect called");
@@ -66,6 +99,12 @@ export default function VoiceBoxMain(callback, deps) {
 		const lang = localStorage.getItem("language");
 		if (lang) {
 			setLanguage(lang);
+		}
+
+		// Get voice from local storage
+		const voice = localStorage.getItem("voice");
+		if (voice) {
+			setVoice(voice);
 		}
 
 		// TODO: Get readOn settings from local storage
@@ -129,7 +168,7 @@ export default function VoiceBoxMain(callback, deps) {
 				"input": {
 					"text": event.target.value
 				}, "voice": {
-					"languageCode": language, "name": "en-US-Wavenet-A", "ssmlGender": "FEMALE"
+					"languageCode": language, "name": voice, "ssmlGender": gender
 				}, "audioConfig": {
 					"audioEncoding": "MP3"
 				}
@@ -165,23 +204,20 @@ export default function VoiceBoxMain(callback, deps) {
 			<TextareaAutosize
 				className="notaninput"
 				minRows={15}
-				style={{
-					caretColor: "transparent", height: 200
-				}}
+				style={{caretColor: "transparent", height: 200}}
 				value={readText}
 			/>
 			<TextareaAutosize
 				minRows={15}
-				style={{
-					height: 100
-				}}
+				style={{height: 100}}
 				placeholder="Start typing here..."
 				value={inputText}
 				onChange={onInputTextChange}
 				id={"inputArea"}
 				autoFocus
 			/>
-			<RadioGroup row aria-label="readOn" name="readOn" defaultValue="comma">
+			<RadioGroup row style={{display: "flex", flexDirection: "row", justifyContent: "center"}}
+			            aria-label="readOn" name="readOn" defaultValue="comma">
 				<label>
 					Read on: &nbsp;
 					<FormControlLabel id="readOnSentence" value="sentence" control={<Radio/>} label="sentence"
@@ -202,12 +238,34 @@ export default function VoiceBoxMain(callback, deps) {
 					}}/>
 				</label>
 			</RadioGroup>
-			<Autocomplete id="languageSelect" options={availableLanguages}
-			              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
-			              onChange={(e, v) => {
-				              setLanguage(v);
-				              localStorage.setItem("language", v || '');
-			              }} value={language} defaultValue={defaultLanguage}/>
+			<div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
+				<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
+				              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
+				              onChange={(e, v) => {
+					              setLanguage(v);
+					              localStorage.setItem("language", v || '');
+				              }} value={language} defaultValue={defaultLanguage}/>
+				<FormControl>
+					<InputLabel id="genderSelectLabel">Gender</InputLabel>
+					<Select id="genderSelect" labelId={"genderSelectLabel"} label="Gender" onChange={(e) => {
+						setGender(e.target.value);
+						localStorage.setItem("gender", e.target.value || '');
+
+						// Clear voice
+						setVoice('');
+						localStorage.setItem("voice", '');
+					}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}}>
+						<MenuItem value={"FEMALE"}>Female</MenuItem>
+						<MenuItem value={"MALE"}>Male</MenuItem>
+					</Select>
+				</FormControl>
+				<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 150}}
+				              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
+				              onChange={(e, v) => {
+					              setVoice(v);
+					              localStorage.setItem("voice", v || '');
+				              }} value={voice} defaultValue={availableVoices[0]}/>
+			</div>
 			<label>
 				API Key: &nbsp;
 				<input type="password" value={apiKey} onChange={onApiKeyChange}/>
