@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from "react";
 import './VoiceBoxMain.css';
 import {
-	TextareaAutosize,
 	Autocomplete,
 	Box,
 	Checkbox,
@@ -26,7 +25,6 @@ const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 TODO
 ====
 - Rate limiting: 1000 characters at a time in the text field if using managed instance (ENV_API_KEY is set)
-- Use MUI for all input fields
 - Google form popup
 - Support read speed
  */
@@ -208,29 +206,31 @@ export default function VoiceBoxMain() {
 
 	return (<div>
 		<form>
-			<TextareaAutosize
-				className="notaninput"
-				minRows={15}
-				style={{caretColor: "transparent", height: 200}}
+			<TextField
+				className="notaninput io"
+				rows={15}
+				style={{caretColor: "transparent"}}
 				value={readText}
+				multiline
 			/>
-			<TextareaAutosize
-				minRows={15}
-				style={{height: 100}}
+			<TextField
+				className="io"
+				maxRows={10}
 				placeholder="Start typing here..."
 				onChange={onInputTextChange}
-				id={"inputArea"}
+				id="inputArea"
 				autoFocus
+				multiline
 			/>
-			<Box sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
+			<Box sx={{border: 1, borderColor: "grey.700", borderRadius: 1, width: "fit-content", margin: "auto"}}>
 				<FormControl
-					style={{display: "flex", flexDirection: "row", justifyContent: "center", margin: "0.5em 0"}}>
+					style={{display: "flex", flexDirection: "row", justifyContent: "center", margin: "0.5em"}}>
 					<FormLabel id="readOnLabel" sx={{fontSize: ""}}>Read on: &nbsp;</FormLabel>
-					<RadioGroup row name="readOn"
-					            aria-labelledby="readOnLabel" defaultValue="comma" value={readOn} onChange={(e) => {
-						setReadOn(e.target.value);
-						localStorage.setItem("readOn", e.target.value);
-					}}>
+					<RadioGroup row name="readOn" aria-labelledby="readOnLabel" defaultValue="comma" value={readOn}
+					            onChange={(e) => {
+						            setReadOn(e.target.value);
+						            localStorage.setItem("readOn", e.target.value);
+					            }}>
 						<FormControlLabel value="sentence" control={<Radio/>} label="sentence"/>
 						<FormControlLabel value="comma" control={<Radio/>} label="comma"/>
 						<FormControlLabel value="space" control={<Radio/>} label="space"/>
@@ -238,7 +238,7 @@ export default function VoiceBoxMain() {
 					<FormControlLabel checked={noBreakChords} control={<Checkbox onChange={(e) => {
 						setNoBreakChords(e.target.checked);
 						localStorage.setItem("noBreakChords", e.target.checked);
-					}} />} label="Don't break chords"/>
+					}}/>} label="Don't break chords"/>
 				</FormControl>
 				<div style={{display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}

@@ -1,8 +1,5 @@
-TextArea {
+.io {
 	width: 70vw;
-	display: flex;
-	flex-direction: column;
-	overflow-y: scroll;
 	background-color: black;
 	color: white;
 }

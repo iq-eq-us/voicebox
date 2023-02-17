@@ -13,7 +13,7 @@ const darkTheme = createTheme({
 
 function App() {
 	return (<ThemeProvider theme={darkTheme}>
-		<CssBaseline/>
+		<CssBaseline enableColorScheme/>
 		<div className="App">
 			<header className="App-header">
 				<img src={logo} className="App-logo" alt="logo"/>
