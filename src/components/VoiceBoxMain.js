@@ -27,6 +27,7 @@ const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 TODO
 ====
 - Google form popup
+- Save output to local storage, clear button
 - Support read speed
  */
 

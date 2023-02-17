@@ -11,12 +11,14 @@ const darkTheme = createTheme({
 	},
 });
 
+const iqeqLink = "https://iq-eq.us/";
+
 function App() {
 	return (<ThemeProvider theme={darkTheme}>
 		<CssBaseline enableColorScheme/>
 		<div className="App">
 			<header className="App-header">
-				<img src={logo} className="App-logo" alt="logo"/>
+				<a href={iqeqLink} target={"_blank"}><img src={logo} className="App-logo" alt="logo" /></a>
 				<h1>
 					VoiceBox
 				</h1>
@@ -27,7 +29,7 @@ function App() {
 			</div>
 		</div>
 		<footer className="App-footer">
-			<small>&copy; 2023 <a href={"https://charachorder.com"}>CharaChorder LLC</a></small>
+			<small>&copy; 2023 by <a href={iqeqLink} target={"_blank"}>iq-eq</a></small>
 		</footer>
 	</ThemeProvider>);
 }
