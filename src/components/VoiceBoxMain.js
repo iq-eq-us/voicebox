@@ -238,7 +238,7 @@ export default function VoiceBoxMain() {
 					<FormControlLabel checked={noBreakChords} control={<Checkbox onChange={(e) => {
 						setNoBreakChords(e.target.checked);
 						localStorage.setItem("noBreakChords", e.target.checked);
-					}} defaultChecked/>} label="Don't break chords"/>
+					}} />} label="Don't break chords"/>
 				</FormControl>
 				<div style={{display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
