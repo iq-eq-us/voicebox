@@ -1,6 +1,6 @@
 import {ThemeProvider, createTheme} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import logo from './CharaChorder_logo_dark_black.webp';
+import logo from './iq-eq_logo.png';
 import './App.css';
 import VoiceBoxMain from "./components/VoiceBoxMain";
 import React from "react";

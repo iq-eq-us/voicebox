@@ -28,7 +28,8 @@ TODO
 ✓ Typing anywhere should focus on input box
 ✓ Support multiple languages
 ✓ Support multiple voices
-- Rate limiting
+- Rate limiting: 1000 characters at a time in the text field if using managed instance (ENV_API_KEY is set)
+- Read on chord: 10ms delay when reading
 - Google form popup
 - Save readOn setting to local storage
 - Use MUI for all input fields
