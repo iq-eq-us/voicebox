@@ -28,6 +28,7 @@ TODO
 ====
 - Google form popup
 - Save output to local storage, clear button
+- Click to view API key
 - Support read speed
  */
 
@@ -222,7 +223,7 @@ export default function VoiceBoxMain() {
 		<form>
 			<TextField
 				className="notaninput io"
-				rows={15}
+				rows={10}
 				style={{caretColor: "transparent"}}
 				value={readText}
 				id="outputArea"
