@@ -12,7 +12,8 @@ import {
 	Select,
 	FormControl,
 	FormLabel,
-	Box
+	Box,
+	Checkbox
 } from "@mui/material";
 import queue from "queue";
 
@@ -24,15 +25,9 @@ const ENV_API_KEY = process.env.VOICEBOX_API_KEY || "";
 /*
 TODO
 ====
-✓ Start focus on input box and make next tab index toggling read type
-✓ Typing anywhere should focus on input box
-✓ Support multiple languages
-✓ Support multiple voices
 - Rate limiting: 1000 characters at a time in the text field if using managed instance (ENV_API_KEY is set)
-- Read on chord: 10ms delay when reading
-- Google form popup
-- Save readOn setting to local storage
 - Use MUI for all input fields
+- Google form popup
 - Support read speed
  */
 
@@ -47,9 +42,11 @@ export default function VoiceBoxMain() {
 	const [gender, setGender] = useState(defaultGender);
 	const [availableVoices, setAvailableVoices] = useState([]);
 	const [voice, setVoice] = useState("");
-	const [inputText, setInputText] = useState("");
 	const [readText, setReadText] = useState("");
 	const [readOn, setReadOn] = useState("comma");
+	const [noBreakChords, setNoBreakChords] = useState(true);
+	const [timerRunning, setTimerRunning] = useState(false);
+
 	const audioQueue = queue({autostart: false, concurrency: 1});
 	const inputArea = document.getElementById("inputArea");
 
@@ -117,6 +114,12 @@ export default function VoiceBoxMain() {
 		if (readOnSetting) {
 			setReadOn(readOnSetting);
 		}
+
+		// Get noBreakChords setting from local storage
+		const noBreakChordsSetting = localStorage.getItem("noBreakChords");
+		if (noBreakChordsSetting) {
+			setNoBreakChords(noBreakChordsSetting === "true");
+		}
 	}, []);
 
 	// Focus on inputArea if any input key is pressed
@@ -137,49 +140,63 @@ export default function VoiceBoxMain() {
 		}
 	}, [inputArea]);
 
+	function apiCall(text) {
+		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
+
+		// Move input text to read text
+		if (readText === "") {
+			setReadText(text);
+		} else {
+			setReadText(readText + "\n" + text);
+		}
+		inputArea.value = "";
+
+		// Call Google TTS API
+		const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + apiKey;
+		const body = JSON.stringify({
+			"input": {
+				"text": text
+			}, "voice": {
+				"languageCode": language, "name": voice, "ssmlGender": gender
+			}, "audioConfig": {
+				"audioEncoding": "MP3"
+			}
+		});
+		const options = {
+			method: "POST", body
+		};
+		fetch(url, options).then(r => r.json()).then(data => {
+			const audio = new Audio("data:audio/wav;base64," + data.audioContent);
+			if (!audio) {
+				console.error("No audio returned from API");
+			}
+			audioQueue.push(() => {
+				return new Promise((resolve, reject) => {
+					audio.onended = resolve;
+					audio.onerror = reject;
+					audio.play();
+				});
+			});
+			audioQueue.start();
+		}).catch(e => console.error(e));
+	}
+
 	function onInputTextChange(event) {
-		setInputText(event.target.value);
+		if (timerRunning) {
+			return;
+		}
 
 		// If last character is newline or period, call API on last input
 		if (stopChars.includes(event.target.value.slice(-1)) || (readOn === "comma" && event.target.value.slice(-1) === ",") || (readOn === "space" && event.target.value.slice(-1) === " ")) {
-			vbLog(`API call on: ${event.target.value} with API key: ${apiKey} and language: ${language}`);
-
-			// Move input text to read text
-			if (readText === "") {
-				setReadText(event.target.value);
+			if (noBreakChords) { // 10ms delay to allow for chord detection
+				setTimerRunning(true);
+				setTimeout(() => {
+					apiCall(event.target.value);
+					setTimerRunning(false);
+				}, 10);
 			} else {
-				setReadText(readText + "\n" + event.target.value);
+				apiCall(event.target.value);
 			}
-			setInputText("");
-
-			// Call Google TTS API
-			const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + apiKey;
-			const body = JSON.stringify({
-				"input": {
-					"text": event.target.value
-				}, "voice": {
-					"languageCode": language, "name": voice, "ssmlGender": gender
-				}, "audioConfig": {
-					"audioEncoding": "MP3"
-				}
-			});
-			const options = {
-				method: "POST", body
-			};
-			fetch(url, options).then(r => r.json()).then(data => {
-				const audio = new Audio("data:audio/wav;base64," + data.audioContent);
-				if (!audio) {
-					console.error("No audio returned from API");
-				}
-				audioQueue.push(() => {
-					return new Promise((resolve, reject) => {
-						audio.onended = resolve;
-						audio.onerror = reject;
-						audio.play();
-					});
-				});
-				audioQueue.start();
-			}).catch(e => console.error(e));
 		}
 	}
 
@@ -201,7 +218,6 @@ export default function VoiceBoxMain() {
 				minRows={15}
 				style={{height: 100}}
 				placeholder="Start typing here..."
-				value={inputText}
 				onChange={onInputTextChange}
 				id={"inputArea"}
 				autoFocus
@@ -219,6 +235,10 @@ export default function VoiceBoxMain() {
 						<FormControlLabel value="comma" control={<Radio/>} label="comma"/>
 						<FormControlLabel value="space" control={<Radio/>} label="space"/>
 					</RadioGroup>
+					<FormControlLabel checked={noBreakChords} control={<Checkbox onChange={(e) => {
+						setNoBreakChords(e.target.checked);
+						localStorage.setItem("noBreakChords", e.target.checked);
+					}} defaultChecked/>} label="Don't break chords"/>
 				</FormControl>
 				<div style={{display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
