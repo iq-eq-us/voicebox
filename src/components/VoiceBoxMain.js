@@ -19,12 +19,13 @@ import queue from "queue";
 const stopChars = [".", "!", "?", ";", ":", "\n"];
 const defaultLanguage = "en-US";
 const defaultGender = "FEMALE";
+const rateLimit = 500; // characters per request
+const chordDelay = 10; // milliseconds
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 
 /*
 TODO
 ====
-- Rate limiting: 1000 characters at a time in the text field if using managed instance (ENV_API_KEY is set)
 - Google form popup
 - Support read speed
  */
@@ -47,6 +48,7 @@ export default function VoiceBoxMain() {
 
 	const audioQueue = queue({autostart: false, concurrency: 1});
 	const inputArea = document.getElementById("inputArea");
+	const outputArea = document.getElementById("outputArea");
 
 	// Get available languages from voices:list endpoint
 	useEffect(() => {
@@ -147,6 +149,8 @@ export default function VoiceBoxMain() {
 		} else {
 			setReadText(readText + "\n" + text);
 		}
+
+		// Clear input text
 		inputArea.value = "";
 
 		// Call Google TTS API
@@ -164,6 +168,10 @@ export default function VoiceBoxMain() {
 			method: "POST", body
 		};
 		fetch(url, options).then(r => r.json()).then(data => {
+
+			// Scroll to bottom of output area - do this here to give new text time to render
+			outputArea.scrollTop = outputArea.scrollHeight;
+
 			const audio = new Audio("data:audio/wav;base64," + data.audioContent);
 			if (!audio) {
 				console.error("No audio returned from API");
@@ -175,11 +183,16 @@ export default function VoiceBoxMain() {
 					audio.play();
 				});
 			});
-			audioQueue.start();
+			audioQueue.start(); // TODO: Figure out how to prevent audio from playing simultaneously
 		}).catch(e => console.error(e));
 	}
 
 	function onInputTextChange(event) {
+		// Limit input to rate limit
+		if (event.target.value.length > 500) {
+			event.target.value = event.target.value.slice(0, rateLimit);
+		}
+
 		if (timerRunning) {
 			return;
 		}
@@ -191,7 +204,7 @@ export default function VoiceBoxMain() {
 				setTimeout(() => {
 					apiCall(event.target.value);
 					setTimerRunning(false);
-				}, 10);
+				}, chordDelay);
 			} else {
 				apiCall(event.target.value);
 			}
@@ -211,6 +224,7 @@ export default function VoiceBoxMain() {
 				rows={15}
 				style={{caretColor: "transparent"}}
 				value={readText}
+				id="outputArea"
 				multiline
 			/>
 			<TextField
