@@ -9,4 +9,13 @@ input {
 	color: white;
 }
 
+.flex-center {
+	display: flex;
+	flex-direction: row !important;
+	justify-content: center;
+}
 
+.fit-center {
+	width: fit-content;
+	margin: auto;
+}

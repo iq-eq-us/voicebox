@@ -237,9 +237,8 @@ export default function VoiceBoxMain() {
 				autoFocus
 				multiline
 			/>
-			<Box sx={{border: 1, borderColor: "grey.700", borderRadius: 1, width: "fit-content", margin: "auto"}}>
-				<FormControl
-					style={{display: "flex", flexDirection: "row", justifyContent: "center", margin: "0.5em"}}>
+			<Box className="fit-center" sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
+				<FormControl className="flex-center" style={{margin: "0.5em"}}>
 					<FormLabel id="readOnLabel" sx={{fontSize: ""}}>Read on: &nbsp;</FormLabel>
 					<RadioGroup row name="readOn" aria-labelledby="readOnLabel" defaultValue="comma" value={readOn}
 					            onChange={(e) => {
@@ -255,7 +254,7 @@ export default function VoiceBoxMain() {
 						localStorage.setItem("noBreakChords", e.target.checked);
 					}}/>} label="Don't break chords"/>
 				</FormControl>
-				<div style={{display: "flex", flexDirection: "row", justifyContent: "center", marginBottom: "1em"}}>
+				<div className="flex-center" style={{margin: "0 0.5em 1em 0.5em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
 					              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
 					              onChange={(e, v) => {
