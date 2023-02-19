@@ -33,7 +33,7 @@ TODO
  */
 
 function vbLog(message) {
-	if ("production" !== process.env.NODE_ENV) console.log("VoiceBox: " + message);
+	if (process.env.NODE_ENV !== "production") console.log("VoiceBox: " + message);
 }
 
 export default function VoiceBoxMain() {
@@ -47,8 +47,7 @@ export default function VoiceBoxMain() {
 	const [readOn, setReadOn] = useState("comma");
 	const [noBreakChords, setNoBreakChords] = useState(true);
 	const [timerRunning, setTimerRunning] = useState(false);
-
-	const audioQueue = queue({autostart: false, concurrency: 1});
+	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
 	const inputArea = document.getElementById("inputArea");
 	const outputArea = document.getElementById("outputArea");
 
@@ -142,7 +141,7 @@ export default function VoiceBoxMain() {
 		}
 	}, [inputArea]);
 
-	function apiCall(text) {
+	function callAPI(text) {
 		// Fix CharaChorder punctuation auto-append
 		if (text.length === 2 && [...stopChars, ","].includes(text[0]) && text[1] === " ") {
 			text = text.slice(0, -2); // don't speak ^[punctuation][space]$
@@ -196,7 +195,6 @@ export default function VoiceBoxMain() {
 					audio.play();
 				});
 			});
-			audioQueue.start(); // TODO: Figure out how to prevent audio from playing simultaneously
 		}).catch(e => console.error(e));
 	}
 
@@ -215,11 +213,11 @@ export default function VoiceBoxMain() {
 			if (noBreakChords) { // delay to allow for chord detection
 				setTimerRunning(true);
 				setTimeout(() => {
-					apiCall(event.target.value);
+					callAPI(event.target.value);
 					setTimerRunning(false);
 				}, chordDelay);
 			} else {
-				apiCall(event.target.value);
+				callAPI(event.target.value);
 			}
 		}
 	}
