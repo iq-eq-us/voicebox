@@ -143,7 +143,20 @@ export default function VoiceBoxMain() {
 	}, [inputArea]);
 
 	function apiCall(text) {
-		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
+		// Fix CharaChorder punctuation auto-append
+		if (text.length === 2 && [...stopChars, ","].includes(text[0]) && text[1] === " ") {
+			text = text.slice(0, -2); // don't speak ^[punctuation][space]$
+		} else if (text[text.length - 2] === " " && [...stopChars, ","].includes(text[text.length - 1])) {
+			text = text.slice(0, -2) + text[text.length - 1] + " "; // manually swap .*[space][punctuation]$
+		}
+
+		// Clear input text
+		inputArea.value = "";
+
+		// Don't call API if text is empty
+		if (text === "") {
+			return;
+		}
 
 		// Move input text to read text
 		if (readText === "") {
@@ -152,10 +165,8 @@ export default function VoiceBoxMain() {
 			setReadText(readText + "\n" + text);
 		}
 
-		// Clear input text
-		inputArea.value = "";
-
 		// Call Google TTS API
+		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
 		const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + apiKey;
 		const body = JSON.stringify({
 			"input": {
@@ -201,7 +212,7 @@ export default function VoiceBoxMain() {
 
 		// If last character is newline or period, call API on last input
 		if (stopChars.includes(event.target.value.slice(-1)) || (readOn === "comma" && event.target.value.slice(-1) === ",") || (readOn === "space" && event.target.value.slice(-1) === " ")) {
-			if (noBreakChords) { // 10ms delay to allow for chord detection
+			if (noBreakChords) { // delay to allow for chord detection
 				setTimerRunning(true);
 				setTimeout(() => {
 					apiCall(event.target.value);
