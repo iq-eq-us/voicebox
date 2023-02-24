@@ -17,5 +17,7 @@ input {
 
 .fit-center {
 	width: fit-content;
+	display: flex;
+	flex-direction: column !important;
 	margin: auto;
 }

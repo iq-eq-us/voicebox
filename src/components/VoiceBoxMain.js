@@ -9,6 +9,7 @@ const defaultReadOn = " ,.!?;:";
 const defaultLanguage = "en-US";
 const defaultGender = "FEMALE";
 const defaultNoBreakPhrases = true;
+const defaultSmoothRead = true;
 const defaultFixCCPuncAutoappend = true;
 const rateLimit = 500; // characters per request
 const chordDelay = 10; // milliseconds
@@ -38,6 +39,7 @@ export default function VoiceBoxMain() {
 	const [readText, setReadText] = useState("");
 	const [readOn, setReadOn] = useState(defaultReadOn);
 	const [noBreakPhrases, setNoBreakPhrases] = useState(defaultNoBreakPhrases);
+	const [smoothRead, setSmoothRead] = useState(defaultSmoothRead);
 	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(defaultFixCCPuncAutoappend);
 	const [timerRunning, setTimerRunning] = useState(false);
 	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
@@ -85,40 +87,47 @@ export default function VoiceBoxMain() {
 	// Get settings from local storage
 	useEffect(() => {
 		vbLog("VoiceBoxMain useEffect called");
-		// Get API key from local storage
+
+		// API key
 		const key = localStorage.getItem("apiKey");
 		if (key) {
 			setApiKey(key);
 		}
 
-		// Get language from local storage
+		// Language
 		const lang = localStorage.getItem("language");
 		if (lang) {
 			setLanguage(lang);
 		}
 
-		// Get voice from local storage
+		// Voice
 		const voice = localStorage.getItem("voice");
 		if (voice) {
 			setVoice(voice);
 		}
 
-		// Get readOn setting from local storage
+		// Read on chars
 		const readOnSetting = localStorage.getItem("readOn");
 		if (readOnSetting) {
 			setReadOn(readOnSetting);
 		}
 
-		// Get noBreakPhrases setting from local storage
+		// Whether to break phrases
 		const noBreakChordsSetting = localStorage.getItem("noBreakPhrases");
 		if (noBreakChordsSetting) {
 			setNoBreakPhrases(noBreakChordsSetting === "true");
 		}
 
-		// Get fixCCPuncAutoappend setting from local storage
+		// Whether to fix CharaChorder punctuation auto-append
 		const fixCCPuncAutoappendSetting = localStorage.getItem("fixCCPuncAutoappend");
 		if (fixCCPuncAutoappendSetting) {
 			setFixCCPuncAutoappend(fixCCPuncAutoappendSetting === "true");
+		}
+
+		// Whether to read smoothly
+		const smoothReadSetting = localStorage.getItem("smoothRead");
+		if (smoothReadSetting) {
+			setSmoothRead(smoothReadSetting === "true");
 		}
 	}, []);
 
@@ -250,7 +259,7 @@ export default function VoiceBoxMain() {
 				multiline
 			/>
 			<Box className="fit-center" sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
-				<FormControl className="flex-center" style={{margin: "0.5em"}}>
+				<FormControl className="flex-center" style={{margin: "0.5em 0.5em 0 0.5em"}}>
 					<TextField id="readOnLabel" label="Read on" variant="outlined" value={readOn} onChange={(e) => {
 						setReadOn(e.target.value);
 						localStorage.setItem("readOn", e.target.value);
@@ -261,12 +270,18 @@ export default function VoiceBoxMain() {
 						setNoBreakPhrases(e.target.checked);
 						localStorage.setItem("noBreakPhrases", e.target.checked);
 					}}/>} label="Don't break phrases"/>
+					<FormControlLabel checked={smoothRead} control={<Checkbox onChange={(e) => {
+						setSmoothRead(e.target.checked);
+						localStorage.setItem("smoothRead", e.target.checked);
+					}}/>} label="Read smoothly"/>
+				</FormControl>
+				<FormControl className="flex-center" style={{margin: "0 0.5em 0.5em 0.5em"}}>
 					<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
 						setFixCCPuncAutoappend(e.target.checked);
 						localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
 					}}/>} label="Allow CharaChorder punctuation auto-append"/>
 				</FormControl>
-				<div className="flex-center" style={{margin: "0 0.5em 1em 0.5em"}}>
+				<div className="flex-center" style={{margin: "0 0.5em 0.5em 0.5em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
 					              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
 					              onChange={(e, v) => {
@@ -298,9 +313,11 @@ export default function VoiceBoxMain() {
 						              localStorage.setItem("voice", v || '');
 					              }} value={voice} defaultValue={availableVoices[0]}/>
 				</div>
-				{!ENV_API_KEY && <TextField id="apiKey" type="password" label="API Key" variant="outlined"
-				                            onChange={onApiKeyChange} value={apiKey} size="small"
-				                            style={{marginBottom: "0.5em"}}/>}
+				{!ENV_API_KEY &&
+				<FormControl className="flex-center" style={{margin: "0.5em"}}>
+					<TextField id="apiKey" type="password" label="API Key" variant="outlined"
+				                            onChange={onApiKeyChange} value={apiKey} size="small"/>
+				</FormControl>}
 			</Box>
 		</form>
 	</div>);
