@@ -1,24 +1,15 @@
 import React, {useEffect, useState} from "react";
 import './VoiceBoxMain.css';
 import {
-	Autocomplete,
-	Box,
-	Checkbox,
-	FormControl,
-	FormControlLabel,
-	FormLabel,
-	InputLabel,
-	MenuItem,
-	Radio,
-	RadioGroup,
-	Select,
-	TextField
+	Autocomplete, Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField
 } from "@mui/material";
 import queue from "queue";
 
-const stopChars = ".!?;:\n";
+const defaultReadOn = " ,.!?;:";
 const defaultLanguage = "en-US";
 const defaultGender = "FEMALE";
+const defaultNoBreakPhrases = true;
+const defaultFixCCPuncAutoappend = true;
 const rateLimit = 500; // characters per request
 const chordDelay = 10; // milliseconds
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
@@ -26,10 +17,10 @@ const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 /*
 TODO
 ====
-- Mode instead of read on: realtime, don't break on phrases, custom input
+- Realtime mode
 - Google form popup
 - Save output to local storage, clear button
-- Click to view API key
+- Click to view API key, error red API field if invalid
 - Support read speed
  */
 
@@ -45,8 +36,9 @@ export default function VoiceBoxMain() {
 	const [availableVoices, setAvailableVoices] = useState([]);
 	const [voice, setVoice] = useState("");
 	const [readText, setReadText] = useState("");
-	const [readOn, setReadOn] = useState("comma");
-	const [noBreakPhrases, setNoBreakPhrases] = useState(true);
+	const [readOn, setReadOn] = useState(defaultReadOn);
+	const [noBreakPhrases, setNoBreakPhrases] = useState(defaultNoBreakPhrases);
+	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(defaultFixCCPuncAutoappend);
 	const [timerRunning, setTimerRunning] = useState(false);
 	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
 	const inputArea = document.getElementById("inputArea");
@@ -122,6 +114,12 @@ export default function VoiceBoxMain() {
 		if (noBreakChordsSetting) {
 			setNoBreakPhrases(noBreakChordsSetting === "true");
 		}
+
+		// Get fixCCPuncAutoappend setting from local storage
+		const fixCCPuncAutoappendSetting = localStorage.getItem("fixCCPuncAutoappend");
+		if (fixCCPuncAutoappendSetting) {
+			setFixCCPuncAutoappend(fixCCPuncAutoappendSetting === "true");
+		}
 	}, []);
 
 	// Focus on inputArea if any input key is pressed
@@ -143,11 +141,12 @@ export default function VoiceBoxMain() {
 	}, [inputArea]);
 
 	function callAPI(text) {
-		// Fix CharaChorder punctuation auto-append
-		if (text.length === 2 && (stopChars + ",").includes(text[0]) && text[1] === " ") {
-			text = text.slice(0, -2); // don't speak ^[punctuation][space]$
-		} else if (text[text.length - 2] === " " && (stopChars + ",").includes(text[text.length - 1])) {
-			text = text.slice(0, -2) + text[text.length - 1] + " "; // manually swap .*[space][punctuation]$
+		if (fixCCPuncAutoappend) { // Fix CharaChorder punctuation auto-append
+			if (text.length === 2 && readOn.includes(text[0]) && text[1] === " ") {
+				text = text.slice(0, -2); // don't speak ^[punctuation][space]$
+			} else if (text[text.length - 2] === " " && readOn.includes(text[text.length - 1])) {
+				text = text.slice(0, -2) + text[text.length - 1] + " "; // manually swap .*[space][punctuation]$
+			}
 		}
 
 		// Clear input text
@@ -212,7 +211,7 @@ export default function VoiceBoxMain() {
 		}
 
 		// If last character is newline or period, call API on last input
-		if (stopChars.includes(event.target.value.slice(-1)) || (readOn === "comma" && event.target.value.slice(-1) === ",") || (readOn === "space" && event.target.value.slice(-1) === " ")) {
+		if ((readOn + "\n").includes(event.target.value.slice(-1))) {
 			if (noBreakPhrases) { // delay to allow for chord detection
 				setTimerRunning(true);
 				setTimeout(() => {
@@ -252,20 +251,20 @@ export default function VoiceBoxMain() {
 			/>
 			<Box className="fit-center" sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
 				<FormControl className="flex-center" style={{margin: "0.5em"}}>
-					<FormLabel id="readOnLabel" sx={{fontSize: ""}}>Read on: &nbsp;</FormLabel>
-					<RadioGroup row name="readOn" aria-labelledby="readOnLabel" defaultValue="comma" value={readOn}
-					            onChange={(e) => {
-						            setReadOn(e.target.value);
-						            localStorage.setItem("readOn", e.target.value);
-					            }}>
-						<FormControlLabel value="sentence" control={<Radio/>} label="sentence"/>
-						<FormControlLabel value="comma" control={<Radio/>} label="comma"/>
-						<FormControlLabel value="space" control={<Radio/>} label="space"/>
-					</RadioGroup>
+					<TextField id="readOnLabel" label="Read on" variant="outlined" value={readOn} onChange={(e) => {
+						setReadOn(e.target.value);
+						localStorage.setItem("readOn", e.target.value);
+					}} style={{marginRight: "0.5em"}} sx={{
+						'.MuiInputBase-input': {fontFamily: "monospace"},
+					}} size="small"/>
 					<FormControlLabel checked={noBreakPhrases} control={<Checkbox onChange={(e) => {
 						setNoBreakPhrases(e.target.checked);
 						localStorage.setItem("noBreakPhrases", e.target.checked);
 					}}/>} label="Don't break phrases"/>
+					<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
+						setFixCCPuncAutoappend(e.target.checked);
+						localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
+					}}/>} label="Allow CharaChorder punctuation auto-append"/>
 				</FormControl>
 				<div className="flex-center" style={{margin: "0 0.5em 1em 0.5em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
@@ -277,7 +276,7 @@ export default function VoiceBoxMain() {
 						              // Clear voice
 						              setVoice('');
 						              localStorage.setItem("voice", '');
-					              }} value={language} defaultValue={defaultLanguage}/>
+					              }} value={language} defaultValue={defaultLanguage} size="small"/>
 					<FormControl>
 						<InputLabel id="genderSelectLabel">Gender</InputLabel>
 						<Select id="genderSelect" labelId={"genderSelectLabel"} label="Gender" onChange={(e) => {
@@ -287,20 +286,20 @@ export default function VoiceBoxMain() {
 							// Clear voice
 							setVoice('');
 							localStorage.setItem("voice", '');
-						}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}}>
+						}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}} size="small">
 							<MenuItem value={"FEMALE"}>Female</MenuItem>
 							<MenuItem value={"MALE"}>Male</MenuItem>
 						</Select>
 					</FormControl>
-					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
+					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}} size="small"
 					              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
 					              onChange={(e, v) => {
 						              setVoice(v);
 						              localStorage.setItem("voice", v || '');
 					              }} value={voice} defaultValue={availableVoices[0]}/>
 				</div>
-				{!ENV_API_KEY && <TextField id="readOnLabel" type="password" label="API Key" variant="outlined"
-				                            onChange={onApiKeyChange} value={apiKey}
+				{!ENV_API_KEY && <TextField id="apiKey" type="password" label="API Key" variant="outlined"
+				                            onChange={onApiKeyChange} value={apiKey} size="small"
 				                            style={{marginBottom: "0.5em"}}/>}
 			</Box>
 		</form>
