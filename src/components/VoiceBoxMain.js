@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import queue from "queue";
 
-const stopChars = [".", "!", "?", ";", ":", "\n"];
+const stopChars = ".!?;:\n";
 const defaultLanguage = "en-US";
 const defaultGender = "FEMALE";
 const rateLimit = 500; // characters per request
@@ -26,6 +26,7 @@ const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 /*
 TODO
 ====
+- Mode instead of read on: realtime, don't break on phrases, custom input
 - Google form popup
 - Save output to local storage, clear button
 - Click to view API key
@@ -45,7 +46,7 @@ export default function VoiceBoxMain() {
 	const [voice, setVoice] = useState("");
 	const [readText, setReadText] = useState("");
 	const [readOn, setReadOn] = useState("comma");
-	const [noBreakChords, setNoBreakChords] = useState(true);
+	const [noBreakPhrases, setNoBreakPhrases] = useState(true);
 	const [timerRunning, setTimerRunning] = useState(false);
 	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
 	const inputArea = document.getElementById("inputArea");
@@ -116,10 +117,10 @@ export default function VoiceBoxMain() {
 			setReadOn(readOnSetting);
 		}
 
-		// Get noBreakChords setting from local storage
-		const noBreakChordsSetting = localStorage.getItem("noBreakChords");
+		// Get noBreakPhrases setting from local storage
+		const noBreakChordsSetting = localStorage.getItem("noBreakPhrases");
 		if (noBreakChordsSetting) {
-			setNoBreakChords(noBreakChordsSetting === "true");
+			setNoBreakPhrases(noBreakChordsSetting === "true");
 		}
 	}, []);
 
@@ -143,9 +144,9 @@ export default function VoiceBoxMain() {
 
 	function callAPI(text) {
 		// Fix CharaChorder punctuation auto-append
-		if (text.length === 2 && [...stopChars, ","].includes(text[0]) && text[1] === " ") {
+		if (text.length === 2 && (stopChars + ",").includes(text[0]) && text[1] === " ") {
 			text = text.slice(0, -2); // don't speak ^[punctuation][space]$
-		} else if (text[text.length - 2] === " " && [...stopChars, ","].includes(text[text.length - 1])) {
+		} else if (text[text.length - 2] === " " && (stopChars + ",").includes(text[text.length - 1])) {
 			text = text.slice(0, -2) + text[text.length - 1] + " "; // manually swap .*[space][punctuation]$
 		}
 
@@ -202,6 +203,8 @@ export default function VoiceBoxMain() {
 		// Limit input to rate limit
 		if (event.target.value.length > 500) {
 			event.target.value = event.target.value.slice(0, rateLimit);
+		} else if (event.target.value === "") {
+			return;
 		}
 
 		if (timerRunning) {
@@ -210,7 +213,7 @@ export default function VoiceBoxMain() {
 
 		// If last character is newline or period, call API on last input
 		if (stopChars.includes(event.target.value.slice(-1)) || (readOn === "comma" && event.target.value.slice(-1) === ",") || (readOn === "space" && event.target.value.slice(-1) === " ")) {
-			if (noBreakChords) { // delay to allow for chord detection
+			if (noBreakPhrases) { // delay to allow for chord detection
 				setTimerRunning(true);
 				setTimeout(() => {
 					callAPI(event.target.value);
@@ -259,10 +262,10 @@ export default function VoiceBoxMain() {
 						<FormControlLabel value="comma" control={<Radio/>} label="comma"/>
 						<FormControlLabel value="space" control={<Radio/>} label="space"/>
 					</RadioGroup>
-					<FormControlLabel checked={noBreakChords} control={<Checkbox onChange={(e) => {
-						setNoBreakChords(e.target.checked);
-						localStorage.setItem("noBreakChords", e.target.checked);
-					}}/>} label="Don't break chords"/>
+					<FormControlLabel checked={noBreakPhrases} control={<Checkbox onChange={(e) => {
+						setNoBreakPhrases(e.target.checked);
+						localStorage.setItem("noBreakPhrases", e.target.checked);
+					}}/>} label="Don't break phrases"/>
 				</FormControl>
 				<div className="flex-center" style={{margin: "0 0.5em 1em 0.5em"}}>
 					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
