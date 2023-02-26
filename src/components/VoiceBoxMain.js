@@ -1,19 +1,20 @@
-import React, {useEffect, useState} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import './VoiceBoxMain.css';
 import {
 	Autocomplete, Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField
 } from "@mui/material";
 import queue from "queue";
 
-const defaultReadOn = " ,.!?;:";
-const defaultLanguage = "en-US";
-const defaultGender = "FEMALE";
-const defaultNoBreakPhrases = true;
-const defaultSmoothRead = true;
-const defaultFixCCPuncAutoappend = true;
-const rateLimit = 500; // characters per request
-const chordDelay = 10; // milliseconds
+const DEFAULT_READ_ON = "., !?;:";
+const DEFAULT_LANG = "en-US";
+const DEFAULT_GENDER = "FEMALE"; // I'm gender equal, the default is alpabetically first
+const DEFAULT_NO_BREAK_PHRASES = true;
+const DEFAULT_SMOOTH_READ = true;
+const DEFAULT_FIX_CC_PUNC_AUTOAPPEND = true;
+const RATE_LIMIT = 500; // characters per request
+const CHORD_DELAY = 10; // milliseconds
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
+const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || "";
 
 /*
 TODO
@@ -25,26 +26,34 @@ TODO
 - Support read speed
  */
 
-function vbLog(message) {
-	if (process.env.NODE_ENV !== "production") console.log("VoiceBox: " + message);
-}
-
 export default function VoiceBoxMain() {
 	const [apiKey, setApiKey] = useState(ENV_API_KEY);
-	const [language, setLanguage] = useState(defaultLanguage);
+	const [language, setLanguage] = useState(DEFAULT_LANG);
 	const [availableLanguages, setAvailableLanguages] = useState([]);
-	const [gender, setGender] = useState(defaultGender);
+	const [gender, setGender] = useState(DEFAULT_GENDER);
 	const [availableVoices, setAvailableVoices] = useState([]);
 	const [voice, setVoice] = useState("");
 	const [readText, setReadText] = useState("");
-	const [readOn, setReadOn] = useState(defaultReadOn);
-	const [noBreakPhrases, setNoBreakPhrases] = useState(defaultNoBreakPhrases);
-	const [smoothRead, setSmoothRead] = useState(defaultSmoothRead);
-	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(defaultFixCCPuncAutoappend);
+	const [readOn, setReadOn] = useState(DEFAULT_READ_ON);
+	const [noBreakPhrases, setNoBreakPhrases] = useState(DEFAULT_NO_BREAK_PHRASES);
+	const [smoothRead, setSmoothRead] = useState(DEFAULT_SMOOTH_READ);
+	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(DEFAULT_FIX_CC_PUNC_AUTOAPPEND);
 	const [timerRunning, setTimerRunning] = useState(false);
+	const [magicDebug, setMagicDebug] = useState(false);
 	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
 	const inputArea = document.getElementById("inputArea");
 	const outputArea = document.getElementById("outputArea");
+
+	// ------------- Debug logging stuff -------------
+	const vbLog = useCallback((message) => {
+		if (process.env.NODE_ENV !== "production" || magicDebug) {
+			console.log("VoiceBox: " + message);
+		}
+		if (magicDebug) {
+			document.getElementById('console').value += message + "\n";
+		}
+	}, [magicDebug]);
+	// ------------------------------------------------
 
 	// Get available languages from voices:list endpoint
 	useEffect(() => {
@@ -64,7 +73,7 @@ export default function VoiceBoxMain() {
 		}).finally(() => {
 			setAvailableLanguages(langs);
 		});
-	}, [apiKey]);
+	}, [apiKey, vbLog]);
 
 	// Get available voices from voices:list endpoint
 	useEffect(() => {
@@ -82,7 +91,7 @@ export default function VoiceBoxMain() {
 		}).finally(() => {
 			setAvailableVoices(voices);
 		});
-	}, [apiKey, language, gender]);
+	}, [apiKey, language, gender, vbLog]);
 
 	// Get settings from local storage
 	useEffect(() => {
@@ -129,7 +138,7 @@ export default function VoiceBoxMain() {
 		if (smoothReadSetting) {
 			setSmoothRead(smoothReadSetting === "true");
 		}
-	}, []);
+	}, [vbLog]);
 
 	// Focus on inputArea if any input key is pressed
 	useEffect(() => {
@@ -195,22 +204,27 @@ export default function VoiceBoxMain() {
 
 			const audio = new Audio("data:audio/wav;base64," + data.audioContent);
 			if (!audio) {
-				console.error("No audio returned from API");
+				vbLog("Error: No audio returned from API");
 			}
 			audioQueue.push(() => {
 				return new Promise((resolve, reject) => {
 					audio.onended = resolve;
 					audio.onerror = reject;
-					audio.play();
+					audio.play().catch(e => vbLog("Error playing audio: " + e));
 				});
 			});
-		}).catch(e => console.error(e));
+		}).catch(e => vbLog("Error calling API: " + e));
+
+		// Check for and enable magic debug mode
+		if (!magicDebug && text === MAGIC_DEBUG_STRING) {
+			setMagicDebug(true);
+		}
 	}
 
 	function onInputTextChange(event) {
 		// Limit input to rate limit
 		if (event.target.value.length > 500) {
-			event.target.value = event.target.value.slice(0, rateLimit);
+			event.target.value = event.target.value.slice(0, RATE_LIMIT);
 		} else if (event.target.value === "") {
 			return;
 		}
@@ -226,7 +240,7 @@ export default function VoiceBoxMain() {
 				setTimeout(() => {
 					callAPI(event.target.value);
 					setTimerRunning(false);
-				}, chordDelay);
+				}, CHORD_DELAY);
 			} else {
 				callAPI(event.target.value);
 			}
@@ -241,31 +255,18 @@ export default function VoiceBoxMain() {
 
 	return (<div>
 		<form>
-			<TextField
-				className="notaninput io"
-				rows={10}
-				style={{caretColor: "transparent"}}
-				value={readText}
-				id="outputArea"
-				multiline
-			/>
-			<TextField
-				className="io"
-				maxRows={10}
-				placeholder="Start typing here..."
-				onChange={onInputTextChange}
-				id="inputArea"
-				autoFocus
-				multiline
-			/>
+			<TextField id="outputArea" className="notaninput io" rows={10} value={readText} multiline
+			           style={{caretColor: "transparent"}}/>
+			<TextField id="inputArea" className="io" maxRows={10} onChange={onInputTextChange} autoFocus multiline
+			           placeholder="Start typing here..."/>
 			<Box className="fit-center" sx={{border: 1, borderColor: "grey.700", borderRadius: 1}}>
-				<FormControl className="flex-center" style={{margin: "0.5em 0.5em 0 0.5em"}}>
-					<TextField id="readOnLabel" label="Read on" variant="outlined" value={readOn} onChange={(e) => {
-						setReadOn(e.target.value);
-						localStorage.setItem("readOn", e.target.value);
-					}} style={{marginRight: "0.5em"}} sx={{
-						'.MuiInputBase-input': {fontFamily: "monospace"},
-					}} size="small"/>
+				<FormControl className="flex-center top-margin">
+					<TextField id="readOnLabel" label="Read on" variant="outlined" value={readOn} size="small"
+					           onChange={(e) => {
+						           setReadOn(e.target.value);
+						           localStorage.setItem("readOn", e.target.value);
+					           }} style={{marginRight: "0.5em"}} sx={{'.MuiInputBase-input': {fontFamily: "monospace"}}}
+					/>
 					<FormControlLabel checked={noBreakPhrases} control={<Checkbox onChange={(e) => {
 						setNoBreakPhrases(e.target.checked);
 						localStorage.setItem("noBreakPhrases", e.target.checked);
@@ -275,14 +276,14 @@ export default function VoiceBoxMain() {
 						localStorage.setItem("smoothRead", e.target.checked);
 					}}/>} label="Read smoothly"/>
 				</FormControl>
-				<FormControl className="flex-center" style={{margin: "0 0.5em 0.5em 0.5em"}}>
+				<FormControl className="flex-center bottom-margin">
 					<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
 						setFixCCPuncAutoappend(e.target.checked);
 						localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
 					}}/>} label="Allow CharaChorder punctuation auto-append"/>
 				</FormControl>
-				<div className="flex-center" style={{margin: "0 0.5em 0.5em 0.5em"}}>
-					<Autocomplete id="languageSelect" options={availableLanguages} sx={{minWidth: 150}}
+				<div className="flex-center bottom-margin">
+					<Autocomplete id="languageSelect" options={availableLanguages} value={language} sx={{minWidth: 150}}
 					              renderInput={(params) => <TextField {...params} label="Language" variant="outlined"/>}
 					              onChange={(e, v) => {
 						              setLanguage(v);
@@ -291,7 +292,7 @@ export default function VoiceBoxMain() {
 						              // Clear voice
 						              setVoice('');
 						              localStorage.setItem("voice", '');
-					              }} value={language} defaultValue={defaultLanguage} size="small"/>
+					              }} defaultValue={DEFAULT_LANG} size="small"/>
 					<FormControl>
 						<InputLabel id="genderSelectLabel">Gender</InputLabel>
 						<Select id="genderSelect" labelId={"genderSelectLabel"} label="Gender" onChange={(e) => {
@@ -301,24 +302,26 @@ export default function VoiceBoxMain() {
 							// Clear voice
 							setVoice('');
 							localStorage.setItem("voice", '');
-						}} value={gender} defaultValue={defaultGender} style={{flexGrow: 1}} size="small">
+						}} value={gender} defaultValue={DEFAULT_GENDER} style={{flexGrow: 1}} size="small">
 							<MenuItem value={"FEMALE"}>Female</MenuItem>
 							<MenuItem value={"MALE"}>Male</MenuItem>
 						</Select>
 					</FormControl>
-					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}} size="small"
+					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
 					              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
 					              onChange={(e, v) => {
 						              setVoice(v);
 						              localStorage.setItem("voice", v || '');
-					              }} value={voice} defaultValue={availableVoices[0]}/>
+					              }} value={voice} defaultValue={availableVoices[0]} size="small"/>
 				</div>
-				{!ENV_API_KEY &&
-				<FormControl className="flex-center" style={{margin: "0.5em"}}>
-					<TextField id="apiKey" type="password" label="API Key" variant="outlined"
-				                            onChange={onApiKeyChange} value={apiKey} size="small"/>
+				{!ENV_API_KEY && <FormControl className="flex-center" style={{margin: "0.5em"}}>
+					<TextField id="apiKey" type="password" label="API Key" variant="outlined" value={apiKey}
+					           onChange={onApiKeyChange} size="small"/>
 				</FormControl>}
 			</Box>
+			{magicDebug && <TextField className="notaninput io" rows={10} id="console" multiline style={{
+				caretColor: "transparent", backgroundColor: "darkred"
+			}}/>}
 		</form>
 	</div>);
 }

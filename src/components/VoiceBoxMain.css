@@ -21,3 +21,11 @@ input {
 	flex-direction: column !important;
 	margin: auto;
 }
+
+.bottom-margin {
+	margin: 0 0.5em 0.5em 0.5em !important;
+}
+
+.top-margin {
+	margin: 0.5em 0.5em 0 0.5em !important;
+}
