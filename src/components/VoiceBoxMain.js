@@ -33,7 +33,6 @@ export default function VoiceBoxMain() {
 	const [gender, setGender] = useState(DEFAULT_GENDER);
 	const [availableVoices, setAvailableVoices] = useState([]);
 	const [voice, setVoice] = useState("");
-	const [readText, setReadText] = useState("");
 	const [readOn, setReadOn] = useState(DEFAULT_READ_ON);
 	const [noBreakPhrases, setNoBreakPhrases] = useState(DEFAULT_NO_BREAK_PHRASES);
 	const [smoothRead, setSmoothRead] = useState(DEFAULT_SMOOTH_READ);
@@ -170,16 +169,17 @@ export default function VoiceBoxMain() {
 		// Clear input text
 		inputArea.value = "";
 
-		// Don't call API if text is empty
-		if (text === "") {
-			return;
+		// Don't call API if text is empty or only whitespace
+		if (text.trim() === "") {
+			return false;
 		}
 
 		// Move input text to read text
-		if (readText === "") {
-			setReadText(text);
+		// inputArea.value = inputArea.value.substring(text.length);
+		if (outputArea.value === "") {
+			outputArea.value = text;
 		} else {
-			setReadText(readText + "\n" + text);
+			outputArea.value += "\n" + text;
 		}
 
 		// Call Google TTS API
@@ -219,17 +219,17 @@ export default function VoiceBoxMain() {
 		if (!magicDebug && text === MAGIC_DEBUG_STRING) {
 			setMagicDebug(true);
 		}
+		return true;
 	}
 
 	function onInputTextChange(event) {
+
 		// Limit input to rate limit
 		if (event.target.value.length > 500) {
 			event.target.value = event.target.value.slice(0, RATE_LIMIT);
-		} else if (event.target.value === "") {
-			return;
 		}
 
-		if (timerRunning) {
+		if (timerRunning || event.target.value === "") {
 			return;
 		}
 
@@ -255,7 +255,7 @@ export default function VoiceBoxMain() {
 
 	return (<div>
 		<form>
-			<TextField id="outputArea" className="notaninput io" rows={10} value={readText} multiline
+			<TextField id="outputArea" className="notaninput io" rows={10} multiline
 			           style={{caretColor: "transparent"}}/>
 			<TextField id="inputArea" className="io" maxRows={10} onChange={onInputTextChange} autoFocus multiline
 			           placeholder="Start typing here..."/>
