@@ -13,6 +13,7 @@ const DEFAULT_SMOOTH_READ = true;
 const DEFAULT_FIX_CC_PUNC_AUTOAPPEND = true;
 const RATE_LIMIT = 500; // characters per request
 const CHORD_DELAY = 10; // milliseconds
+const ENDPOINT = process.env.REACT_APP_VOICEBOX_ENDPOINT || "https://texttospeech.googleapis.com/v1/";
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || "";
 
@@ -60,7 +61,7 @@ export default function VoiceBoxMain() {
 			return;
 		}
 		let langs = [];
-		const url = "https://texttospeech.googleapis.com/v1/voices?key=" + apiKey;
+		const url = ENDPOINT + "voices?key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
 			langs = data["voices"].map(voice => voice["languageCodes"][0]);
 
@@ -80,7 +81,7 @@ export default function VoiceBoxMain() {
 			return;
 		}
 		let voices = [];
-		const url = "https://texttospeech.googleapis.com/v1/voices?languageCode=" + language + "&key=" + apiKey;
+		const url = ENDPOINT + "voices?languageCode=" + language + "&key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
 			voices = data.voices.filter(voice => voice.ssmlGender === gender && !voice.name.includes("Studio")).map(voice => voice.name);
 			voices.sort();
@@ -192,7 +193,7 @@ export default function VoiceBoxMain() {
 
 		// Call Google TTS API
 		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
-		const url = "https://texttospeech.googleapis.com/v1/text:synthesize?key=" + apiKey;
+		const url = ENDPOINT + "text:synthesize?key=" + apiKey;
 		const body = JSON.stringify({
 			"input": {
 				"text": text
