@@ -7,7 +7,7 @@ import queue from "queue";
 
 const DEFAULT_READ_ON = "., !?;:";
 const DEFAULT_LANG = "en-US";
-const DEFAULT_GENDER = "FEMALE"; // I'm gender equal, the default is alpabetically first
+const DEFAULT_GENDER = "FEMALE"; // I'm gender equal, the default is alphabetically first
 const DEFAULT_NO_BREAK_PHRASES = true;
 const DEFAULT_SMOOTH_READ = true;
 const DEFAULT_FIX_CC_PUNC_AUTOAPPEND = true;
@@ -19,7 +19,7 @@ const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || 
 /*
 TODO
 ====
-- Realtime mode
+- Make realtime mode work
 - Google form popup
 - Save output to local storage, clear button
 - Click to view API key, error red API field if invalid
@@ -62,7 +62,7 @@ export default function VoiceBoxMain() {
 		let langs = [];
 		const url = "https://texttospeech.googleapis.com/v1/voices?key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
-			langs = data.voices.map(voice => voice.languageCodes[0]);
+			langs = data["voices"].map(voice => voice["languageCodes"][0]);
 
 			// Remove duplicates and sort
 			langs = [...new Set(langs)].sort();
