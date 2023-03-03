@@ -158,6 +158,16 @@ export default function VoiceBoxMain() {
 	}, [inputArea]);
 
 	function callAPI(text) {
+
+		// Trim input text to last occurrence of any char in readOn
+		// let text = inputArea.value;
+		// if (text.length > 0) {
+		// 	const lastReadOn = Math.max(...readOn.split("").map(char => text.lastIndexOf(char)));
+		// 	if (lastReadOn !== -1) {
+		// 		text = text.substring(0, lastReadOn + 1);
+		// 	}
+		// }
+
 		if (fixCCPuncAutoappend) { // Fix CharaChorder punctuation auto-append
 			if (text.length === 2 && readOn.includes(text[0]) && text[1] === " ") {
 				text = text.slice(0, -2); // don't speak ^[punctuation][space]$
@@ -166,9 +176,6 @@ export default function VoiceBoxMain() {
 			}
 		}
 
-		// Clear input text
-		inputArea.value = "";
-
 		// Don't call API if text is empty or only whitespace
 		if (text.trim() === "") {
 			return false;
@@ -176,6 +183,7 @@ export default function VoiceBoxMain() {
 
 		// Move input text to read text
 		// inputArea.value = inputArea.value.substring(text.length);
+		inputArea.value = "";
 		if (outputArea.value === "") {
 			outputArea.value = text;
 		} else {
