@@ -23,7 +23,6 @@ function App() {
 				</h1>
 			</header>
 			<div className="App-body">
-				{/*Main input field (VoiceBoxTextField)*/}
 				<VoiceBoxMain id={"VoiceBox-main"}/>
 			</div>
 		</div>

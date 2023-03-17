@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from "react";
 import './VoiceBoxMain.css';
+import FormPopup from "./FormPopup";
 import {
 	Autocomplete, Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField
 } from "@mui/material";
@@ -13,8 +14,10 @@ const DEFAULT_SMOOTH_READ = true;
 const DEFAULT_FIX_CC_PUNC_AUTOAPPEND = true;
 const RATE_LIMIT = 500; // characters per request
 const CHORD_DELAY = 10; // milliseconds
+const FORM_POPUP_CALL_COUNT = 10;
 const ENDPOINT = process.env.REACT_APP_VOICEBOX_ENDPOINT || "https://texttospeech.googleapis.com/v1/";
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
+const FORM_URL = process.env.REACT_APP_FORM_URL || "";
 const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || "";
 
 /*
@@ -38,6 +41,8 @@ export default function VoiceBoxMain() {
 	const [smoothRead, setSmoothRead] = useState(DEFAULT_SMOOTH_READ);
 	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(DEFAULT_FIX_CC_PUNC_AUTOAPPEND);
 	const [timerRunning, setTimerRunning] = useState(false);
+	const [formPopupOpen, setFormPopupOpen] = useState(false);
+	const [numAPICalls, setNumAPICalls] = useState(0);
 	const [magicDebug, setMagicDebug] = useState(false);
 	const audioQueue = useState(queue({autostart: true, concurrency: 1}))[0];
 	const inputArea = document.getElementById("inputArea");
@@ -157,6 +162,14 @@ export default function VoiceBoxMain() {
 		}
 	}, [inputArea]);
 
+	function triggerFormPopup() {
+		if (localStorage.getItem("formPopupShown") === "true") {
+			return;
+		}
+		setFormPopupOpen(true);
+		localStorage.setItem("formPopupShown", "true");
+	}
+
 	function callAPI(text) {
 
 		// Trim input text to last occurrence of any char in readOn
@@ -188,6 +201,14 @@ export default function VoiceBoxMain() {
 			outputArea.value = text;
 		} else {
 			outputArea.value += "\n" + text;
+		}
+
+		// Increment API call count
+		setNumAPICalls(numAPICalls + 1);
+
+		// Show form popup if target call count reached
+		if (numAPICalls === FORM_POPUP_CALL_COUNT) {
+			triggerFormPopup();
 		}
 
 		// Call Google TTS API
@@ -261,6 +282,10 @@ export default function VoiceBoxMain() {
 		vbLog("API key set to: " + event.target.value);
 	}
 
+	function closeFormPopup() {
+		setFormPopupOpen(false);
+	}
+
 	return (<div>
 		<form>
 			<TextField id="outputArea" className="notaninput io" rows={10} multiline
@@ -331,5 +356,6 @@ export default function VoiceBoxMain() {
 				caretColor: "transparent", backgroundColor: "darkred"
 			}}/>}
 		</form>
+		{FORM_URL && <FormPopup formURL={FORM_URL} open={formPopupOpen} handleClose={closeFormPopup}/>}
 	</div>);
 }
