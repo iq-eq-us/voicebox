@@ -1,6 +1,5 @@
 import {ThemeProvider, createTheme} from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
-import logo from './iq-eq_logo.png';
 import './App.css';
 import VoiceBoxMain from "./components/VoiceBoxMain";
 import React from "react";
@@ -18,7 +17,7 @@ function App() {
 		<CssBaseline enableColorScheme/>
 		<div className="App">
 			<header className="App-header">
-				<a href={iqeqLink} target={"_blank"} rel="noopener"><img src={logo} className="App-logo" alt="logo" /></a>
+				<a href={iqeqLink} target={"_blank"} rel="noopener"><img src="logo512.png" className="App-logo" alt="logo" /></a>
 				<h1>
 					VoiceBox
 				</h1>

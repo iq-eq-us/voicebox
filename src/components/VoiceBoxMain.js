@@ -21,7 +21,6 @@ const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || 
 TODO
 ====
 - Make realtime mode work
-- Google form popup
 - Save output to local storage, clear button
 - Click to view API key, error red API field if invalid
 - Support read speed
