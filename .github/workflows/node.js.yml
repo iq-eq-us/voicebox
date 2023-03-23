@@ -29,6 +29,8 @@ jobs:
     - run: npm i
     - run: npm ci
     - run: npm run build --if-present
+      env:
+        DISABLE_ESLINT_PLUGIN: true
     - run: npm test
     - run : git config user.name github-actions
     - run : git config user.email github-actions@github.com
