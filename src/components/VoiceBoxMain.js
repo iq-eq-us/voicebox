@@ -254,7 +254,7 @@ export default function VoiceBoxMain() {
 	function onInputTextChange(event) {
 
 		// Limit input to rate limit
-		if (event.target.value.length > 500) {
+		if (event.target.value.length > RATE_LIMIT) {
 			event.target.value = event.target.value.slice(0, RATE_LIMIT);
 		}
 
