@@ -113,6 +113,12 @@ export default function VoiceBoxMain() {
 			setLanguage(lang);
 		}
 
+		// Gender
+		const gender = localStorage.getItem("gender");
+		if (gender) {
+			setGender(gender);
+		}
+
 		// Voice
 		const voice = localStorage.getItem("voice");
 		if (voice) {
