@@ -87,7 +87,9 @@ export default function VoiceBoxMain() {
 		let voices = [];
 		const url = ENDPOINT + "voices?languageCode=" + language + "&key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
-			voices = data.voices.filter(voice => voice.ssmlGender === gender && !voice.name.includes("Studio")).map(voice => voice.name);
+			voices = data["voices"].filter(voice =>
+				voice.ssmlGender === gender && !voice.name.includes("Studio") && voice.name.startsWith(language)
+			).map(voice => voice.name);
 			voices.sort();
 			vbLog("Available voices: " + voices);
 		}).catch(error => {
@@ -147,8 +149,9 @@ export default function VoiceBoxMain() {
 		const smoothReadSetting = localStorage.getItem("smoothRead");
 		if (smoothReadSetting) {
 			setSmoothRead(smoothReadSetting === "true");
+			audioQueue.concurrency = (smoothReadSetting === "true") ? 1 : 3;
 		}
-	}, [vbLog]);
+	}, [vbLog, audioQueue]);
 
 	// Focus on inputArea if any input key is pressed
 	useEffect(() => {
@@ -312,6 +315,7 @@ export default function VoiceBoxMain() {
 					}}/>} label="Don't break phrases"/>
 					<FormControlLabel checked={smoothRead} control={<Checkbox onChange={(e) => {
 						setSmoothRead(e.target.checked);
+						audioQueue.concurrency = e.target.checked ? 1 : 3;
 						localStorage.setItem("smoothRead", e.target.checked);
 					}}/>} label="Read smoothly"/>
 				</FormControl>
