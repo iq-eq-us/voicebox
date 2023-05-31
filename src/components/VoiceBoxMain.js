@@ -11,11 +11,13 @@ const DEFAULT_LANG = "en-US";
 const DEFAULT_GENDER = "FEMALE"; // I'm gender equal, the default is alphabetically first
 const DEFAULT_NO_BREAK_PHRASES = true;
 const DEFAULT_SMOOTH_READ = true;
+const DEFAULT_TRANSLATE = true;
 const DEFAULT_FIX_CC_PUNC_AUTOAPPEND = true;
 const RATE_LIMIT = 500; // characters per request
 const CHORD_DELAY = 10; // milliseconds
 const FORM_POPUP_CALL_COUNT = 10;
-const ENDPOINT = process.env.REACT_APP_VOICEBOX_ENDPOINT || "https://texttospeech.googleapis.com/v1/";
+const TTS_ENDPOINT = process.env.REACT_APP_VOICEBOX_TTS_ENDPOINT || "https://texttospeech.googleapis.com/v1/";
+const TRANSLATE_ENDPOINT = process.env.REACT_APP_VOICEBOX_TRANSLATE_ENDPOINT || "https://translation.googleapis.com/language/translate/v2/";
 const ENV_API_KEY = process.env.REACT_APP_VOICEBOX_API_KEY || "";
 const FORM_URL = process.env.REACT_APP_FORM_URL || "";
 const MAGIC_DEBUG_STRING = process.env.REACT_APP_VOICEBOX_MAGIC_DEBUG_STRING || "";
@@ -39,6 +41,7 @@ export default function VoiceBoxMain() {
 	const [readOn, setReadOn] = useState(DEFAULT_READ_ON);
 	const [noBreakPhrases, setNoBreakPhrases] = useState(DEFAULT_NO_BREAK_PHRASES);
 	const [smoothRead, setSmoothRead] = useState(DEFAULT_SMOOTH_READ);
+	const [translate, setTranslate] = useState(DEFAULT_TRANSLATE);
 	const [fixCCPuncAutoappend, setFixCCPuncAutoappend] = useState(DEFAULT_FIX_CC_PUNC_AUTOAPPEND);
 	const [timerRunning, setTimerRunning] = useState(false);
 	const [formPopupOpen, setFormPopupOpen] = useState(false);
@@ -65,7 +68,7 @@ export default function VoiceBoxMain() {
 			return;
 		}
 		let langs = [];
-		const url = ENDPOINT + "voices?key=" + apiKey;
+		const url = TTS_ENDPOINT + "voices?key=" + apiKey;
 		fetch(url).then(response => response.json()).then(data => {
 			langs = data["voices"].map(voice => voice["languageCodes"][0]);
 
@@ -85,8 +88,8 @@ export default function VoiceBoxMain() {
 			return;
 		}
 		let voices = [];
-		const url = ENDPOINT + "voices?languageCode=" + language + "&key=" + apiKey;
-		fetch(url).then(response => response.json()).then(data => {
+		const url = TTS_ENDPOINT + "voices?languageCode=" + language + "&key=" + apiKey;
+		fetch(url).then(r => r.json()).then(data => {
 			voices = data["voices"].filter(voice =>
 				voice.ssmlGender === gender && !voice.name.includes("Studio") && voice.name.startsWith(language)
 			).map(voice => voice.name);
@@ -139,6 +142,12 @@ export default function VoiceBoxMain() {
 			setNoBreakPhrases(noBreakChordsSetting === "true");
 		}
 
+		// Whether to translate
+		const translateSetting = localStorage.getItem("translate");
+		if (translateSetting) {
+			setTranslate(translateSetting === "true");
+		}
+
 		// Whether to fix CharaChorder punctuation auto-append
 		const fixCCPuncAutoappendSetting = localStorage.getItem("fixCCPuncAutoappend");
 		if (fixCCPuncAutoappendSetting) {
@@ -179,7 +188,42 @@ export default function VoiceBoxMain() {
 		localStorage.setItem("formPopupShown", "true");
 	}
 
-	function callAPI(text) {
+	function callGoogleTTSAPI(text) {
+		// Call Google TTS API
+		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
+		const url = TTS_ENDPOINT + "text:synthesize?key=" + apiKey;
+		const body = JSON.stringify({
+			"input": {
+				"text": text
+			}, "voice": {
+				"languageCode": language, "name": voice, "ssmlGender": gender
+			}, "audioConfig": {
+				"audioEncoding": "MP3"
+			}
+		});
+		const options = {
+			method: "POST", body
+		};
+		fetch(url, options).then(r => r.json()).then(data => {
+
+			// Scroll to bottom of output area - do this here to give new text time to render
+			outputArea.scrollTop = outputArea.scrollHeight;
+
+			const audio = new Audio("data:audio/wav;base64," + data.audioContent);
+			if (!audio) {
+				vbLog("Error: No audio returned from API");
+			}
+			audioQueue.push(() => {
+				return new Promise((resolve, reject) => {
+					audio.onended = resolve;
+					audio.onerror = reject;
+					audio.play().catch(e => vbLog("Error playing audio: " + e));
+				});
+			});
+		}).catch(e => vbLog("Error calling API: " + e));
+	}
+
+	function processText(text) {
 
 		// Trim input text to last occurrence of any char in readOn
 		// let text = inputArea.value;
@@ -220,38 +264,23 @@ export default function VoiceBoxMain() {
 			triggerFormPopup();
 		}
 
-		// Call Google TTS API
-		vbLog(`API call on: ${text} with API key: ${apiKey} and language: ${language}`);
-		const url = ENDPOINT + "text:synthesize?key=" + apiKey;
-		const body = JSON.stringify({
-			"input": {
-				"text": text
-			}, "voice": {
-				"languageCode": language, "name": voice, "ssmlGender": gender
-			}, "audioConfig": {
-				"audioEncoding": "MP3"
+		// Translate text
+		if (translate) {
+			vbLog(`Translating: ${text} to ${language}`);
+			const url = TRANSLATE_ENDPOINT + "?format=text&q=" + text + "&target=" + language + "&key=" + apiKey;
+			const options = {
+				method: "POST"
 			}
-		});
-		const options = {
-			method: "POST", body
-		};
-		fetch(url, options).then(r => r.json()).then(data => {
-
-			// Scroll to bottom of output area - do this here to give new text time to render
-			outputArea.scrollTop = outputArea.scrollHeight;
-
-			const audio = new Audio("data:audio/wav;base64," + data.audioContent);
-			if (!audio) {
-				vbLog("Error: No audio returned from API");
-			}
-			audioQueue.push(() => {
-				return new Promise((resolve, reject) => {
-					audio.onended = resolve;
-					audio.onerror = reject;
-					audio.play().catch(e => vbLog("Error playing audio: " + e));
-				});
+			fetch(url, options).then(r => r.json()).then(data => {
+				vbLog(`Translated to: ${data["data"]["translations"][0]["translatedText"]}`);
+				text = data["data"]["translations"][0]["translatedText"];
+				callGoogleTTSAPI(text);
+			}).catch(error => {
+				vbLog("Error translating: " + error);
 			});
-		}).catch(e => vbLog("Error calling API: " + e));
+		} else {
+			callGoogleTTSAPI(text);
+		}
 
 		// Check for and enable magic debug mode
 		if (!magicDebug && text === MAGIC_DEBUG_STRING) {
@@ -276,11 +305,11 @@ export default function VoiceBoxMain() {
 			if (noBreakPhrases) { // delay to allow for chord detection
 				setTimerRunning(true);
 				setTimeout(() => {
-					callAPI(event.target.value);
+					processText(event.target.value);
 					setTimerRunning(false);
 				}, CHORD_DELAY);
 			} else {
-				callAPI(event.target.value);
+				processText(event.target.value);
 			}
 		}
 	}
@@ -320,6 +349,10 @@ export default function VoiceBoxMain() {
 					}}/>} label="Read smoothly"/>
 				</FormControl>
 				<FormControl className="flex-center bottom-margin">
+					<FormControlLabel checked={translate} control={<Checkbox onChange={(e) => {
+						setTranslate(e.target.checked);
+						localStorage.setItem("translate", e.target.checked);
+					}}/>} label="Translate"/>
 					<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
 						setFixCCPuncAutoappend(e.target.checked);
 						localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
