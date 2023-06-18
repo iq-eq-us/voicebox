@@ -37,3 +37,15 @@
   color: white;
   margin-top: 0.5rem;
 }
+
+.Disclaimer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(5px + 1vmin);
+  color: gray;
+  margin-top: 0.5rem;
+  padding-left: 25%;
+  padding-right: 25%;
+  text-align: center;
+}

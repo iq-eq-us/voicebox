@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useState} from "react";
 import './VoiceBoxMain.css';
 import FormPopup from "./FormPopup";
 import {
-	Autocomplete, Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField
+	Autocomplete, Box, Checkbox, FormControl, FormControlLabel, InputLabel, MenuItem, Select, TextField, Tooltip
 } from "@mui/material";
 import queue from "queue";
 
@@ -274,6 +274,7 @@ export default function VoiceBoxMain() {
 			fetch(url, options).then(r => r.json()).then(data => {
 				vbLog(`Translated to: ${data["data"]["translations"][0]["translatedText"]}`);
 				text = data["data"]["translations"][0]["translatedText"];
+				outputArea.value += "\n[" + text + "]"; // add translated text to output area
 				callGoogleTTSAPI(text);
 			}).catch(error => {
 				vbLog("Error translating: " + error);
@@ -352,11 +353,13 @@ export default function VoiceBoxMain() {
 					<FormControlLabel checked={translate} control={<Checkbox onChange={(e) => {
 						setTranslate(e.target.checked);
 						localStorage.setItem("translate", e.target.checked);
-					}}/>} label="Translate"/>
-					<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
-						setFixCCPuncAutoappend(e.target.checked);
-						localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
-					}}/>} label="Allow CharaChorder punctuation auto-append"/>
+					}}/>} label="Translate with Google"/>
+					<Tooltip title="Allow CharaChorder punctuation auto-append">
+						<FormControlLabel checked={fixCCPuncAutoappend} control={<Checkbox onChange={(e) => {
+							setFixCCPuncAutoappend(e.target.checked);
+							localStorage.setItem("fixCCPuncAutoappend", e.target.checked);
+						}}/>} label="CharaChorder punctuation"/>
+					</Tooltip>
 				</FormControl>
 				<div className="flex-center bottom-margin">
 					<Autocomplete id="languageSelect" options={availableLanguages} value={language} sx={{minWidth: 150}}
