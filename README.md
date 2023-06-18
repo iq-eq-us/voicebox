@@ -9,7 +9,8 @@ Live text-to-speech
 3. Go to https://console.cloud.google.com/apis/credentials and click `+ Create Credentials` and select `API Key`
 4. Copy the API key and paste it into the API Key field.
 5. Click the API key in GCP and rename it to `VoiceBox`, then choose `Restrict key` and select ONLY `Cloud Text-to-Speech API`.
-6. Click `Save`
+6. (Optional) If you also want to use the translate feature, also select `Cloud Translation API`.
+7. Click `Save`
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
