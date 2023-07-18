@@ -17,9 +17,14 @@ input {
 
 .fit-center {
 	width: fit-content;
+	max-width: 90vw;
 	display: flex;
 	flex-direction: column !important;
 	margin: auto;
+}
+
+.voice-select {
+	min-width: 250px;
 }
 
 .bottom-margin {
@@ -28,4 +33,19 @@ input {
 
 .top-margin {
 	margin: 0.5em 0.5em 0 0.5em !important;
+}
+
+@media screen and (max-width: 900px) {
+	.io {
+		width: 95vw;
+	}
+}
+
+@media screen and (max-width: 650px) {
+	.flex-center {
+		flex-direction: column !important;
+	}
+	.voice-select {
+		min-width: auto;
+	}
 }

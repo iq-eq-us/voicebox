@@ -32,7 +32,7 @@ function App() {
 				<small>&copy; 2023 by <a href={iqeqLink} target={"_blank"} rel="noopener">iq-eq</a></small>
 			</div>
 			<div className="App-footer">
-				<img src="white-short.svg"/>
+				<img src="white-short.svg" alt="Translated by Google"/>
 			</div>
 			<div className="Disclaimer">
 				<small>

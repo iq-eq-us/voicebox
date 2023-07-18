@@ -386,7 +386,7 @@ export default function VoiceBoxMain() {
 							<MenuItem value={"MALE"}>Male</MenuItem>
 						</Select>
 					</FormControl>
-					<Autocomplete id="voiceSelect" options={availableVoices} sx={{minWidth: 250}}
+					<Autocomplete id="voiceSelect" className="voice-select" options={availableVoices}
 					              renderInput={(params) => <TextField {...params} label="Voice" variant="outlined"/>}
 					              onChange={(e, v) => {
 						              setVoice(v);

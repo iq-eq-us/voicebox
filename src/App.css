@@ -49,3 +49,10 @@
   padding-right: 25%;
   text-align: center;
 }
+
+@media screen and (max-width: 900px) {
+  .Disclaimer {
+    padding-left: 5%;
+    padding-right: 5%;
+  }
+}
