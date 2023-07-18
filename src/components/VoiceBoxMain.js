@@ -354,8 +354,8 @@ export default function VoiceBoxMain() {
 						setTranslate(e.target.checked);
 						localStorage.setItem("translate", e.target.checked);
 
-						// Remove space from readOn if translate is disabled
-						if (!e.target.checked) {
+						// Remove space from readOn if translate is enabled
+						if (e.target.checked) {
 							setReadOn(readOn.replace(" ", ""));
 							localStorage.setItem("readOn", readOn.replace(" ", ""));
 						}

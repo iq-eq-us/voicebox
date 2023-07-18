@@ -46,11 +46,13 @@ function App() {
 				<small>
 					We (iq-eq) do not collect any data when you use the <a href={fossLink}>GitHub pages version</a>.
 					<br/>
-					However, Google may collect data from your use of the Translate with Google feature.
+					However, Google may collect data from your use of the Translate with Google feature, and as we use
+					Google's TTS service.
 					Additionally, if you use the <a href={canonicalLink}>version hosted by us through CloudFlare</a>,
 					CloudFlare may collect data and we may use some of that for metrics, bugfixes, etc.
 					We do not sell any data we collect.
-					Please refer to the privacy policies of Google Translate, CloudFlare, and for more information.
+					Please refer to the privacy policies of Google Cloud Text-to-Speech, Google Translate, and
+					CloudFlare for more information.
 					We recommend you do not enter any personal information into this service and will not be held liable
 					or responsible if you do and/or something bad happens.
 				</small>
