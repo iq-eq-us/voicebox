@@ -40,6 +40,7 @@
 
 .Disclaimer {
   display: flex;
+  flex-direction: column !important;
   align-items: center;
   justify-content: center;
   font-size: calc(5px + 1vmin);
