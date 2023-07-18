@@ -10,14 +10,16 @@ const darkTheme = createTheme({
 	},
 });
 
-const iqeqLink = "https://iq-eq.us/";
+const iq_eqLink = "https://iq-eq.us/";
+const canonicalLink = "https://voicebox.iq-eq.us/";
+const fossLink = "https://iq-eq-us.github.io/voicebox/";
 
 function App() {
 	return (<ThemeProvider theme={darkTheme}>
 		<CssBaseline enableColorScheme/>
 		<div className="App">
 			<header className="App-header">
-				<a href={iqeqLink} target={"_blank"} rel="noopener"><img src="logo512.png" className="App-logo"
+				<a href={iq_eqLink} target={"_blank"} rel="noopener"><img src="logo512.png" className="App-logo"
 				                                                         alt="logo"/></a>
 				<h1>
 					VoiceBox
@@ -29,7 +31,7 @@ function App() {
 		</div>
 		<footer>
 			<div className="App-footer">
-				<small>&copy; 2023 by <a href={iqeqLink} target={"_blank"} rel="noopener">iq-eq</a></small>
+				<small>&copy; 2023 by <a href={iq_eqLink} target={"_blank"} rel="noopener">iq-eq</a></small>
 			</div>
 			<div className="App-footer">
 				<img src="white-short.svg" alt="Translated by Google"/>
@@ -39,6 +41,18 @@ function App() {
 					This service may contain translations powered by Google. iq-eq and Google disclaim all warranties
 					related to the translations, express or implied, including any warranties of accuracy, reliability,
 					and any implied warranties of merchantability, fitness for a particular purpose and noninfringement.
+				</small>
+				<br/>
+				<small>
+					We (iq-eq) do not collect any data when you use the <a href={fossLink}>GitHub pages version</a>.
+					<br/>
+					However, Google may collect data from your use of the Translate with Google feature.
+					Additionally, if you use the <a href={canonicalLink}>version hosted by us through CloudFlare</a>,
+					CloudFlare may collect data and we may use some of that for metrics, bugfixes, etc.
+					We do not sell any data we collect.
+					Please refer to the privacy policies of Google Translate, CloudFlare, and for more information.
+					We recommend you do not enter any personal information into this service and will not be held liable
+					or responsible if you do and/or something bad happens.
 				</small>
 			</div>
 		</footer>
